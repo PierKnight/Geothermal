@@ -54,9 +54,6 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
 
     public final HashSet<BlockPos> tankConnections = new HashSet<>();
     final FluidTank internalTank = new FluidTank(0);
-    private FluidStack prevFluidStack = internalTank.getFluid();
-
-    private boolean dirty = false;
 
     public int getPipesSize()
     {
@@ -67,42 +64,43 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
     {
         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
 
-
-
-        boolean packetTime = world.getGameTime() % 20 == 0;
-
+        int fluidAmount = this.internalTank.getFluidAmount();
 
         LinkedList<ServerPlayer> players = new LinkedList<>();
 
         for (BlockPos pos : posList)
         {
-            PipeInfo pipeInfo = capability.getNetwork(pos);
-            if(pipeInfo == null)
-                continue;
-            for (Direction direction : Direction.values())
-            {
-                EnumPipeConnection connection = pipeInfo.getConnection(direction);
-                if(connection.isTankConnection())
-                {
-                    mutableBlockPos.setWithOffset(pos, direction);
-                    if(world.isAreaLoaded(mutableBlockPos,1))
-                    {
+            if(world.isLoaded(mutableBlockPos)) {
+                PipeInfo pipeInfo = capability.getNetwork(pos);
+                if (pipeInfo == null)
+                    continue;
+                for (Direction direction : Direction.values()) {
+                    EnumPipeConnection connection = pipeInfo.getConnection(direction);
+                    if (connection.isTankConnection()) {
+                        mutableBlockPos.setWithOffset(pos, direction);
+
                         BlockEntity entity = world.getBlockEntity(mutableBlockPos);
-                        if(entity != null)
+                        if (entity != null)
                             entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite()).ifPresent((tank) -> updateTank(world, tank, connection, mutableBlockPos));
+
                     }
                 }
             }
-
-            if(world.getGameTime() % 20 == 0)
-                syncPipe(world, mutableBlockPos, this.internalTank.getFluid());
         }
+        if(fluidAmount != this.internalTank.getFluidAmount() && (fluidAmount == 0 || this.internalTank.getFluidAmount() == 0))
+            dio(world);
     }
 
     public void syncPipe(Level world, BlockPos pos, FluidStack fluidStack)
     {
-        PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(pos.getX(),pos.getY(),pos.getZ(),20,world.dimension());
-        PacketManager.INSTANCE.send(PacketDistributor.NEAR.with(() -> targetPoint),new PacketLoseFluid2(this.internalTank.getFluid(), pos.immutable()));
+        //PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(pos.getX(),pos.getY(),pos.getZ(),20,world.dimension());
+        //PacketManager.INSTANCE.send(PacketDistributor.NEAR.with(() -> targetPoint),new PacketLoseFluid2(fluidStack, pos.immutable()));
+    }
+
+    public void dio(Level world)
+    {
+        //this.tankConnections.forEach((blockPos -> syncPipe(world,blockPos, this.internalTank.getFluid())));
+
     }
 
     private void updateTank(Level level, IFluidHandler tank, EnumPipeConnection connection, BlockPos pos)
@@ -123,20 +121,7 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
 
     public void tick(Level world, WorldNetworkCapability capability)
     {
-        this.prevFluidStack = this.internalTank.getFluid().copy();
         this.forEachTank(world, capability, this.tankConnections);
-
-        if(this.dirty && world.getGameTime() % 20 == 0)
-            this.dirty = false;
-
-        if(this.prevFluidStack.isEmpty() && this.internalTank.getFluidAmount() > 0)
-            this.dirty = true;
-        if(!this.prevFluidStack.isEmpty() && this.internalTank.getFluidAmount() == 0)
-            this.dirty = true;
-
-
-
-
     }
 
     public UUID getIdentifier()

@@ -14,6 +14,7 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.block.EnumPipeConnection;
 import net.pier.geoe.block.GeothermalPipeBlock;
 import net.pier.geoe.register.GeoeBlocks;
@@ -39,6 +40,13 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
     private static final Direction[] DIRECTIONS = Direction.values();
     private final Map<BlockPos, PipeInfo> pipeNetworkMap = new HashMap<>();
     public final HashSet<PipeNetwork> networks = new HashSet<>();
+
+
+    private void getNetworkChunk(Level level, BlockPos pos)
+    {
+        //level.getChunkAt(pos).getCapability()
+    }
+
     public boolean connectPipe(Level level, BlockPos pos, Direction direction, HashSet<PipeNetwork> blacklist)
     {
         BlockPos nearPos = pos.relative(direction);
@@ -63,6 +71,9 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
             bigNetwork.tankConnections.addAll(smallNetwork.tankConnections);
 
+
+
+
             for (BlockPos pipePos : smallNetwork.networkPipesList)
             {
                 PipeInfo e = getNetwork(pipePos);
@@ -70,7 +81,13 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
                 bigNetwork.networkPipesList.add(pipePos);
                 e.network = bigNetwork;
                 this.pipeNetworkMap.put(pipePos, e);
+
+
             }
+
+            smallNetwork.dio(level);
+
+            bigNetwork.internalTank.fill(smallNetwork.internalTank.drain(44444, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
             syncDirection(level, pos, pipe, direction, EnumPipeConnection.PIPE);
             return true;
         }
@@ -122,6 +139,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
             FluidStack newFluid = oldFluidAmount.copy();
             newFluid.setAmount(Math.round(((float) pipeNetwork.network.getPipesSize() / oldSize) * oldFluidAmount.getAmount()));
             pipeNetwork.network.internalTank.setFluid(newFluid);
+
         }
         return totalScan;
     }
@@ -140,6 +158,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
             newPipe.network.updatingTimes = scanNewNetwork(nearPos, newPipe, nearPipe);
             this.networks.add(newPipe.network);
             found.add(newPipe.network);
+            newPipe.network.dio(level);
         }
 
         if(pipe != null && !found.contains(pipe.network))
@@ -149,6 +168,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
             newPipe.network.updatingTimes = scanNewNetwork(pos, newPipe, pipe);
             this.networks.add(newPipe.network);
             found.add(newPipe.network);
+            newPipe.network.dio(level);
         }
 
     }
@@ -230,6 +250,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
         if(pipeInfo.hasTankConnections())
         {
             pipeInfo.network.tankConnections.add(pos);
+
             pipeInfo.network.syncPipe(level,pos, pipeInfo.network.internalTank.getFluid());
         }
         else
@@ -271,6 +292,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
         EnumPipeConnection rotatedConnection = blockState.getValue(GeothermalPipeBlock.PROPERTY_BY_DIRECTION.get(direction)).rotateFluidConnection();
         syncDirection(level, pos, pipeInfo, direction, rotatedConnection);
+
         return true;
     }
 
