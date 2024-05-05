@@ -25,10 +25,12 @@ import net.pier.geoe.register.GeoeConfiguredFeatures;
 import net.pier.geoe.register.GeoeFeatures;
 import net.pier.geoe.register.GeoeItems;
 import org.slf4j.Logger;
+import oshi.util.tuples.Pair;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -54,7 +56,7 @@ public class Geothermal
     };
 
 
-    public static final Map<ChunkPos, Map<BlockPos, FluidStack>> openedPipes = new HashMap<>();
+    public static final Map<UUID, NetworkInfo> networks = new HashMap<>();
 
     public Geothermal()
     {

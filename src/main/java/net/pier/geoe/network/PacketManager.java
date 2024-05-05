@@ -20,7 +20,6 @@ public class PacketManager
     public static void init()
     {
         registerMessage(PacketLoseFluid.class, PacketLoseFluid::new);
-        registerMessage(PacketLoseFluid2.class, PacketLoseFluid2::new);
     }
 
 

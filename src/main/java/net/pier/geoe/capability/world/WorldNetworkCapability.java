@@ -1,10 +1,10 @@
-package net.pier.geoe.capability;
+package net.pier.geoe.capability.world;
 
+import com.mojang.datafixers.types.Func;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -17,13 +17,13 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.block.EnumPipeConnection;
 import net.pier.geoe.block.GeothermalPipeBlock;
+import net.pier.geoe.blockentity.PipeBlockEntity;
 import net.pier.geoe.register.GeoeBlocks;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class WorldNetworkCapability implements INBTSerializable<Tag>
 {
@@ -38,77 +38,75 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
     });
 
     private static final Direction[] DIRECTIONS = Direction.values();
-    private final Map<BlockPos, PipeInfo> pipeNetworkMap = new HashMap<>();
-    public final HashSet<PipeNetwork> networks = new HashSet<>();
+    public final Map<UUID,PipeNetwork> networks = new HashMap<>();
 
 
-    private void getNetworkChunk(Level level, BlockPos pos)
-    {
-        //level.getChunkAt(pos).getCapability()
-    }
-
-    public boolean connectPipe(Level level, BlockPos pos, Direction direction, HashSet<PipeNetwork> blacklist)
+    public boolean connectPipe(Level level, BlockPos pos, Direction direction, HashSet<UUID> blacklist)
     {
         BlockPos nearPos = pos.relative(direction);
 
-        PipeInfo nearPipe = getNetwork(nearPos);
+        PipeBlockEntity nearPipe = getPipe(level,nearPos);
         if(nearPipe == null)
             return false;
 
-        PipeInfo pipe = getNetwork(pos);
+        PipeBlockEntity pipe = getPipe(level,pos);
         if(pipe == null)
             return false;
-        if(blacklist.contains(nearPipe.network))
+        if(blacklist.contains(nearPipe.getNetworkUUID()))
             return false;
 
-        boolean oneNetworkIsEmpty = nearPipe.network.internalTank.isEmpty() || pipe.network.internalTank.isEmpty();
+        PipeNetwork network = this.networks.get(pipe.getNetworkUUID());
+        PipeNetwork nearNetwork = this.networks.get(nearPipe.getNetworkUUID());
 
-        if(oneNetworkIsEmpty || nearPipe.network.internalTank.getFluid().isFluidEqual(pipe.network.internalTank.getFluid()))
+        boolean oneNetworkIsEmpty = nearNetwork.internalTank.isEmpty() || network.internalTank.isEmpty();
+
+        if(oneNetworkIsEmpty || nearNetwork.internalTank.getFluid().isFluidEqual(network.internalTank.getFluid()))
         {
-            PipeNetwork bigNetwork = pipe.network.getPipesSize() > nearPipe.network.getPipesSize() ? pipe.network : nearPipe.network;
-            PipeNetwork smallNetwork = bigNetwork == pipe.network ? nearPipe.network : pipe.network;
-            blacklist.add(bigNetwork);
+            PipeNetwork bigNetwork = network.getPipesSize() > nearNetwork.getPipesSize() ? network : nearNetwork;
+            PipeNetwork smallNetwork = bigNetwork == network ? nearNetwork : network;
+            blacklist.add(bigNetwork.getIdentifier());
 
             bigNetwork.tankConnections.addAll(smallNetwork.tankConnections);
 
-
-
+            this.networks.remove(smallNetwork.getIdentifier());
 
             for (BlockPos pipePos : smallNetwork.networkPipesList)
             {
-                PipeInfo e = getNetwork(pipePos);
-                this.networks.remove(e.network);
+                PipeBlockEntity e = getPipe(level, pipePos);
                 bigNetwork.networkPipesList.add(pipePos);
-                e.network = bigNetwork;
-                this.pipeNetworkMap.put(pipePos, e);
+                e.networkUUID = bigNetwork.getIdentifier();
+                //this.putPipe(level, pipePos, e);
+
+
+                e.syncInfo();
 
 
             }
 
-            smallNetwork.dio(level);
-
             bigNetwork.internalTank.fill(smallNetwork.internalTank.drain(44444, IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+            bigNetwork.dio(level);
             syncDirection(level, pos, pipe, direction, EnumPipeConnection.PIPE);
+
             return true;
         }
         return false;
     }
 
-    private int scanNewNetwork(BlockPos startPos, PipeInfo pipeNetwork, PipeInfo oldNetwork)
+    private int scanNewNetwork(Level level, BlockPos startPos, PipeNetwork newPipeNetwork, PipeBlockEntity oldPipe,FluidStack fluidStack)
     {
 
         //we use a linked list since it is more efficient to add and remove elements in it
         LinkedList<BlockPos> pipesToScan = new LinkedList<>();
         pipesToScan.addFirst(startPos);
 
-        int oldSize = oldNetwork.network.getPipesSize();
-        FluidStack oldFluidAmount = oldNetwork.network.internalTank.getFluid();
 
-        oldNetwork.network = pipeNetwork.network;
-        oldNetwork.network.networkPipesList.add(startPos);
-        this.pipeNetworkMap.put(startPos, oldNetwork);
-        if(oldNetwork.hasTankConnections())
-            pipeNetwork.network.tankConnections.add(startPos);
+        newPipeNetwork.networkPipesList.add(startPos);
+
+        oldPipe.networkUUID = newPipeNetwork.getIdentifier();
+        oldPipe.syncInfo();
+
+        if(oldPipe.hasTankConnections())
+            newPipeNetwork.tankConnections.add(startPos);
 
         int totalScan = 1;
         while(!pipesToScan.isEmpty())
@@ -118,57 +116,59 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
             {
                 BlockPos nearBlockPos = qPos.relative(direction);
 
-                PipeInfo nearPipeInfo = this.getNetwork(nearBlockPos);
-                if(nearPipeInfo != null && nearPipeInfo.network != pipeNetwork.network && nearPipeInfo.getConnection(direction.getOpposite()) == EnumPipeConnection.PIPE)
+                PipeBlockEntity nearPipeInfo = this.getPipe(level, nearBlockPos);
+                if(nearPipeInfo != null && !nearPipeInfo.networkUUID.equals(newPipeNetwork.getIdentifier()) && nearPipeInfo.getConnection(direction.getOpposite()) == EnumPipeConnection.PIPE)
                 {
-                    nearPipeInfo.network = pipeNetwork.network;
-                    pipeNetwork.network.networkPipesList.add(nearBlockPos);
+                    nearPipeInfo.networkUUID = newPipeNetwork.getIdentifier();
+
+                    newPipeNetwork.networkPipesList.add(nearBlockPos);
                     pipesToScan.addFirst(nearBlockPos);
-                    this.pipeNetworkMap.put(nearBlockPos, nearPipeInfo);
                     ++totalScan;
                     if(nearPipeInfo.hasTankConnections())
-                        pipeNetwork.network.tankConnections.add(nearBlockPos);
+                        newPipeNetwork.tankConnections.add(nearBlockPos);
+
+                    nearPipeInfo.syncInfo();
                 }
 
             }
         }
 
-        //this is to distribute the fluid into separated networks
-        if(!oldFluidAmount.isEmpty())
-        {
-            FluidStack newFluid = oldFluidAmount.copy();
-            newFluid.setAmount(Math.round(((float) pipeNetwork.network.getPipesSize() / oldSize) * oldFluidAmount.getAmount()));
-            pipeNetwork.network.internalTank.setFluid(newFluid);
+        newPipeNetwork.internalTank.setFluid(fluidStack);
 
-        }
         return totalScan;
     }
 
-    public void disconnectPipe(Level level, BlockPos pos, Direction direction, HashSet<PipeNetwork> found)
+    public void disconnectPipe(Level level, BlockPos pos, Direction direction, HashSet<UUID> found,FluidStack fluidStack)
     {
         BlockPos nearPos = pos.relative(direction);
 
-        PipeInfo pipe = this.getNetwork(pos);
-        PipeInfo nearPipe = getNetwork(nearPos);
+        PipeBlockEntity pipe = this.getPipe(level, pos);
+        PipeBlockEntity nearPipe = this.getPipe(level, nearPos);
 
-        if(nearPipe != null && !found.contains(nearPipe.network))
+
+
+
+        /*
+        if(nearPipe != null && !found.contains(nearPipe.networkUUID))
         {
-            this.networks.remove(nearPipe.network);
-            PipeInfo newPipe = new PipeInfo();
-            newPipe.network.updatingTimes = scanNewNetwork(nearPos, newPipe, nearPipe);
-            this.networks.add(newPipe.network);
-            found.add(newPipe.network);
-            newPipe.network.dio(level);
+            System.out.println("DISCONNECT" + nearPos);
+            this.networks.remove(nearPipe.networkUUID);
+            PipeNetwork newPipeNetwork = new PipeNetwork();
+            this.networks.put(newPipeNetwork.getIdentifier(),newPipeNetwork);
+            newPipeNetwork.updatingTimes = scanNewNetwork(level, nearPos, newPipeNetwork, nearPipe,fluidStack);
+            found.add(newPipeNetwork.getIdentifier());
         }
 
-        if(pipe != null && !found.contains(pipe.network))
+         */
+
+
+        if(pipe != null && !found.contains(pipe.networkUUID))
         {
-            this.networks.remove(pipe.network);
-            PipeInfo newPipe = new PipeInfo();
-            newPipe.network.updatingTimes = scanNewNetwork(pos, newPipe, pipe);
-            this.networks.add(newPipe.network);
-            found.add(newPipe.network);
-            newPipe.network.dio(level);
+            this.networks.remove(pipe.networkUUID);
+            PipeNetwork newPipeNetwork = new PipeNetwork();
+            newPipeNetwork.updatingTimes = scanNewNetwork(level, pos, newPipeNetwork, pipe,fluidStack);
+            this.networks.put(newPipeNetwork.getIdentifier(), newPipeNetwork);
+            found.add(newPipeNetwork.getIdentifier());
         }
 
     }
@@ -176,61 +176,70 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
     public void onPipePlaced(Level level, BlockPos pos)
     {
 
-        PipeInfo pipeInfo = new PipeInfo();
-        if(this.pipeNetworkMap.putIfAbsent(pos, pipeInfo) == null)
-        {
-            pipeInfo.network.networkPipesList.add(pos);
-            this.networks.add(pipeInfo.network);
-        }
-        else
-        {
-            HashSet<PipeNetwork> nearNetworks = new HashSet<>();
-            for (Direction direction : DIRECTIONS)
-                connectPipe(level, pos, direction, nearNetworks);
-        }
 
-    }
 
-    public void onPipeBroken(Level world, BlockPos pos)
-    {
-        PipeInfo oldPipeInfo = this.pipeNetworkMap.remove(pos);
-        if(oldPipeInfo == null)
+        PipeBlockEntity pipe = getPipe(level,pos);
+        if(pipe == null)
             return;
 
 
-        if(oldPipeInfo.network.updatingTimes >= 5000)
+        PipeNetwork newPipeNetwork = new PipeNetwork();
+        this.networks.put(newPipeNetwork.getIdentifier(), newPipeNetwork);
+        newPipeNetwork.networkPipesList.add(pos);
+        pipe.networkUUID = newPipeNetwork.getIdentifier();
+
+        HashSet<UUID> nearNetworks = new HashSet<>();
+        for (Direction direction : DIRECTIONS)
+            connectPipe(level, pos, direction, nearNetworks);
+
+    }
+
+    public void onPipeBroken(Level world, BlockPos pos, Consumer<Boolean> destroy)
+    {
+        PipeBlockEntity oldPipeInfo = getPipe(world,pos);
+        if(oldPipeInfo == null)
+            return;
+        PipeNetwork oldNetwork = this.networks.get(oldPipeInfo.getNetworkUUID());
+
+        destroy.accept(true);
+
+        if(oldNetwork.updatingTimes >= 5000)
         {
             world.setBlock(pos, Blocks.COBBLESTONE.defaultBlockState(), 2);
-            oldPipeInfo.network.networkPipesList.remove(pos);
-            if(oldPipeInfo.network.networkPipesList.isEmpty())
-                networks.remove(oldPipeInfo.network);
+            oldNetwork.networkPipesList.remove(pos);
+            if(oldNetwork.networkPipesList.isEmpty())
+                networks.remove(oldPipeInfo.networkUUID);
             return;
         }
 
         int totalNetworks = 0;
         for (Direction direction : DIRECTIONS)
-            if(this.getNetwork(pos.relative(direction)) != null)
+            if(this.getPipe(world, pos.relative(direction)) != null)
                 ++totalNetworks;
 
         if(totalNetworks <= 1)
         {
-            oldPipeInfo.network.networkPipesList.remove(pos);
-            if(oldPipeInfo.network.networkPipesList.isEmpty())
-                networks.remove(oldPipeInfo.network);
+            oldNetwork.networkPipesList.remove(pos);
+            if(oldNetwork.networkPipesList.isEmpty())
+                networks.remove(oldPipeInfo.networkUUID);
         }
         else
         {
-            this.networks.remove(oldPipeInfo.network);
-            HashSet<PipeNetwork> newNetworks = new HashSet<>();
-            for (Direction direction : DIRECTIONS)
-                disconnectPipe(world, pos, direction, newNetworks);
+
+            HashSet<UUID> newNetworks = new HashSet<>();
+            int amount = oldNetwork.internalTank.getFluidAmount();
+            for (Direction direction : DIRECTIONS) {
+                amount = amount / 2;
+                disconnectPipe(world, pos, direction, newNetworks,new FluidStack(oldNetwork.internalTank.getFluid().getFluid(),amount));
+            }
+            this.networks.remove(oldPipeInfo.networkUUID);
         }
     }
 
     public void pipeChanged(Level level, BlockPos pos, BlockState state, Direction direction, BlockState nearState)
     {
-        PipeInfo pipeInfo = getNetwork(pos);
-        if(pipeInfo == null)
+        PipeBlockEntity pipeInfo = getPipe(level, pos);
+        if(pipeInfo == null || level.isClientSide)
             return;
 
         EnumPipeConnection currentConnection = state.getValue(GeothermalPipeBlock.PROPERTY_BY_DIRECTION.get(direction));
@@ -242,48 +251,50 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
     }
 
-    public void syncDirection(Level level, BlockPos pos, PipeInfo pipeInfo, Direction direction, EnumPipeConnection connection)
+    public void syncDirection(Level level, BlockPos pos, PipeBlockEntity pipeInfo, Direction direction, EnumPipeConnection connection)
     {
         level.setBlock(pos, level.getBlockState(pos).setValue(GeothermalPipeBlock.PROPERTY_BY_DIRECTION.get(direction), connection), 1 | 2 | 64);
         pipeInfo.setConnection(direction, connection);
 
+        PipeNetwork network = this.networks.get(pipeInfo.getNetworkUUID());
+        if(network == null)
+            return;
+
         if(pipeInfo.hasTankConnections())
         {
-            pipeInfo.network.tankConnections.add(pos);
-
-            pipeInfo.network.syncPipe(level,pos, pipeInfo.network.internalTank.getFluid());
+            network.tankConnections.add(pos);
         }
         else
         {
-            pipeInfo.network.tankConnections.remove(pos);
-            pipeInfo.network.syncPipe(level,pos, FluidStack.EMPTY);
+            network.tankConnections.remove(pos);
         }
 
     }
 
     public void updateConnection(Level level, BlockPos pos, Direction direction, boolean connected)
     {
-        PipeInfo pipe = getNetwork(pos);
-        PipeInfo nearPipe = getNetwork(pos.relative(direction));
+        PipeBlockEntity pipe = getPipe(level, pos);
+        PipeBlockEntity nearPipe = getPipe(level, pos.relative(direction));
         if(pipe == null || nearPipe == null)
             return;
 
         if(connected)
         {
-            HashSet<PipeNetwork> checknet = new HashSet<>();
+            HashSet<UUID> checknet = new HashSet<>();
             connectPipe(level, pos, direction, checknet);
         }
         else
         {
-            HashSet<PipeNetwork> newNetworks = new HashSet<>();
+            HashSet<UUID> newNetworks = new HashSet<>();
             syncDirection(level, pos, pipe, direction, EnumPipeConnection.NONE);
-            disconnectPipe(level, pos, direction, newNetworks);
+            disconnectPipe(level, pos.relative(direction), direction, newNetworks,FluidStack.EMPTY);
+            disconnectPipe(level, pos, direction, newNetworks,FluidStack.EMPTY);
         }
     }
 
     public boolean updateTankConnection(Level level, BlockPos pos, Direction direction)
     {
-        PipeInfo pipeInfo = getNetwork(pos);
+        PipeBlockEntity pipeInfo = getPipe(level, pos);
         if(pipeInfo == null)
             return false;
         BlockPos nearPos = pos.relative(direction);
@@ -298,18 +309,23 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
     public void tick(Level world)
     {
-        this.networks.forEach(network ->
+        this.networks.values().forEach(network ->
         {
             network.tick(world, this);
             network.updatingTimes = 0;
+
         });
+        if(world.getGameTime() % 20 == 0)
+         System.out.println(networks.size());
     }
 
     @Nullable
-    public PipeInfo getNetwork(BlockPos pos)
-    {
-        return this.pipeNetworkMap.get(pos);
+    public PipeBlockEntity getPipe(Level level, BlockPos pos) {
+        if(level.getBlockEntity(pos) instanceof PipeBlockEntity pipe)
+            return pipe;
+        return null;
     }
+
 
     @Override
     public CompoundTag serializeNBT()
@@ -317,16 +333,9 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
         CompoundTag tag = new CompoundTag();
 
-        ListTag blockposToNetwork = new ListTag();
-
-        this.pipeNetworkMap.forEach((pos, pipeInfo) ->
-        {
-            CompoundTag networkTag = new CompoundTag();
-            networkTag.put("pos", NbtUtils.writeBlockPos(pos));
-            networkTag.put("pipeInfo", pipeInfo.serializeNBT());
-            blockposToNetwork.add(networkTag);
-        });
-        tag.put("posToNetwork", blockposToNetwork);
+        ListTag networks = new ListTag();
+        this.networks.forEach((pos, network) -> networks.add(network.serializeNBT()));
+        tag.put("networks", networks);
 
         return tag;
     }
@@ -335,16 +344,14 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
     public void deserializeNBT(Tag nbt)
     {
 
-        ListTag blockposToNetwork = ((CompoundTag)nbt).getList("posToNetwork", 10);
+        ListTag networks = ((CompoundTag)nbt).getList("networks", 10);
 
-        for (int i = 0; i < blockposToNetwork.size(); i++)
+        for (int i = 0; i < networks.size(); i++)
         {
-            CompoundTag tag = blockposToNetwork.getCompound(i);
-
-            PipeInfo pipeInfo = new PipeInfo();
-            pipeInfo.deserializeNBT(tag.getCompound("pipeInfo"));
-            this.pipeNetworkMap.put(NbtUtils.readBlockPos(tag.getCompound("pos")), pipeInfo);
-            this.networks.add(pipeInfo.network);
+            CompoundTag networkTag = networks.getCompound(i);
+            PipeNetwork network = new PipeNetwork();
+            network.deserializeNBT(networkTag);
+            this.networks.put(network.getIdentifier(),network);
         }
     }
 

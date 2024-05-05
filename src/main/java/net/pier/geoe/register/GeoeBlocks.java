@@ -11,6 +11,7 @@ import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.GeothermalPipeBlock;
 import net.pier.geoe.block.TestBlock;
+import net.pier.geoe.blockentity.PipeBlockEntity;
 import net.pier.geoe.blockentity.TestBlockEntity;
 
 public class GeoeBlocks
@@ -36,6 +37,9 @@ public class GeoeBlocks
         public static final RegistryObject<Block> TEST = REGISTER.register("test", () -> new TestBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)));
         public static final RegistryObject<BlockEntityType<TestBlockEntity>> TEST_BE = BE_REGISTER.register("test_type", () -> BlockEntityType.Builder.of(TestBlockEntity::new, TEST.get()).build(null));
 
+
+
+        public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
 
         public static void init() {}
     }

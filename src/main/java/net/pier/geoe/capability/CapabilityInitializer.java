@@ -20,6 +20,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.pier.geoe.Geothermal;
+import net.pier.geoe.capability.world.WorldNetworkCapability;
 import net.pier.geoe.client.TestRenderer;
 import net.pier.geoe.register.GeoeBlocks;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,13 @@ public class CapabilityInitializer
         attachCapability("pipe_network", event, WorldNetworkCapability::new, WorldNetworkCapability.CAPABILITY);
         attachCapability("geo_reservoir", event, ReservoirCapability::new, ReservoirCapability.CAPABILITY);
     }
+
+    @SubscribeEvent
+    public static void capabilityAttachChunk(final AttachCapabilitiesEvent<LevelChunk> event)
+    {
+
+    }
+
     @SubscribeEvent
     public static void chunk(final ChunkEvent.Load event)
     {

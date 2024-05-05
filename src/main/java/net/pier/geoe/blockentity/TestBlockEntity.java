@@ -3,10 +3,13 @@ package net.pier.geoe.blockentity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.Tags;
 import net.pier.geoe.register.GeoeBlocks;
+import org.jetbrains.annotations.Nullable;
 
 public class TestBlockEntity extends BaseBlockEntity
 {
@@ -118,4 +121,8 @@ public class TestBlockEntity extends BaseBlockEntity
         return state.is(GeoeBlocks.Test.TEST.get()) || state.is(Tags.Blocks.STONE);
     }
 
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return super.getUpdatePacket();
+    }
 }

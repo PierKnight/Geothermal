@@ -1,4 +1,4 @@
-package net.pier.geoe.capability;
+package net.pier.geoe.capability.world;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,7 +15,8 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.block.EnumPipeConnection;
-import net.pier.geoe.network.PacketLoseFluid2;
+import net.pier.geoe.blockentity.PipeBlockEntity;
+import net.pier.geoe.network.PacketLoseFluid;
 import net.pier.geoe.network.PacketManager;
 
 import java.util.HashSet;
@@ -71,7 +72,7 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
         for (BlockPos pos : posList)
         {
             if(world.isLoaded(mutableBlockPos)) {
-                PipeInfo pipeInfo = capability.getNetwork(pos);
+                PipeBlockEntity pipeInfo = capability.getPipe(world, pos);
                 if (pipeInfo == null)
                     continue;
                 for (Direction direction : Direction.values()) {
@@ -93,14 +94,13 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
 
     public void syncPipe(Level world, BlockPos pos, FluidStack fluidStack)
     {
-        //PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(pos.getX(),pos.getY(),pos.getZ(),20,world.dimension());
-        //PacketManager.INSTANCE.send(PacketDistributor.NEAR.with(() -> targetPoint),new PacketLoseFluid2(fluidStack, pos.immutable()));
+        PacketDistributor.TargetPoint targetPoint = new PacketDistributor.TargetPoint(pos.getX(),pos.getY(),pos.getZ(),20,world.dimension());
+        PacketManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)),new PacketLoseFluid(fluidStack, this.getIdentifier()));
     }
 
     public void dio(Level world)
     {
-        //this.tankConnections.forEach((blockPos -> syncPipe(world,blockPos, this.internalTank.getFluid())));
-
+        this.tankConnections.forEach((blockPos -> syncPipe(world,blockPos, this.internalTank.getFluid())));
     }
 
     private void updateTank(Level level, IFluidHandler tank, EnumPipeConnection connection, BlockPos pos)

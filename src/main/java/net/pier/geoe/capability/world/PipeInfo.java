@@ -1,28 +1,44 @@
-package net.pier.geoe.capability;
+package net.pier.geoe.capability.world;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.common.util.LazyOptional;
 import net.pier.geoe.block.EnumPipeConnection;
+import oshi.util.tuples.Pair;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.nio.channels.Pipe;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.UUID;
 
 public class PipeInfo implements INBTSerializable<CompoundTag>
 {
     private EnumPipeConnection[] connection = new EnumPipeConnection[6];
-    PipeNetwork network;
+    UUID networkUUID;
     int tankConnections = 0;
+
+
 
     public PipeInfo()
     {
         this(new PipeNetwork());
     }
 
+    public PipeNetwork network;
+
     public PipeInfo(PipeNetwork pipeNetwork)
     {
         Arrays.fill(connection,EnumPipeConnection.NONE);
+        this.networkUUID = pipeNetwork.getIdentifier();
         this.network = pipeNetwork;
+
+
     }
 
     public EnumPipeConnection getConnection(Direction direction)
@@ -42,16 +58,21 @@ public class PipeInfo implements INBTSerializable<CompoundTag>
         return tankConnections > 0;
     }
 
-    public PipeNetwork getNetwork()
+    @Nullable
+    public PipeNetwork getNetwork(Level level)
     {
-        return network;
+        Optional<WorldNetworkCapability> lazeCap = level.getCapability(WorldNetworkCapability.CAPABILITY).resolve();
+        if(lazeCap.isPresent())
+            return lazeCap.get().networks.get(networkUUID);
+        return null;
     }
+
 
     @Override
     public CompoundTag serializeNBT()
     {
         CompoundTag tag = new CompoundTag();
-        tag.put("network",this.network.serializeNBT());
+        tag.putUUID("network",this.networkUUID);
         ListTag listTag = new ListTag();
         for(int i = 0;i < 6;i++)
         {
@@ -67,7 +88,7 @@ public class PipeInfo implements INBTSerializable<CompoundTag>
     @Override
     public void deserializeNBT(CompoundTag nbt)
     {
-        this.network.deserializeNBT(nbt.getCompound("network"));
+        this.networkUUID = nbt.getUUID("network");
 
         ListTag listTag = nbt.getList("connections",10);
         for (int i = 0; i < listTag.size(); i++)
