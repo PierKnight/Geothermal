@@ -1,12 +1,20 @@
 package net.pier.geoe.capability;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.RandomSupport;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.feature.IglooFeature;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.INBTSerializable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,28 +31,45 @@ public class ReservoirCapability implements INBTSerializable<Tag>
         }
     });
 
-    private final Map<Long, Float> map = new HashMap<>();
+    private final Level level;
 
-
-    public synchronized float getValue(int chunkX, int chunkZ)
+    public ReservoirCapability(Level level)
     {
-        return map.getOrDefault((((long) chunkX) << 32) | (chunkZ & 0xffffffffL), -1F);
+        this.level = level;
     }
 
-    public synchronized float generateReservoir(long seed, int chunkX, int chunkZ)
+    private final Map<ChunkPos, Float> map = new HashMap<>();
+
+
+
+    public Float getReservoirWorldInfo(ChunkPos chunkPos)
     {
-        long v = (((long) chunkX) << 32) | (chunkZ & 0xffffffffL);
-        long pSalt = 423613082L;
-        float val = new Random(seed + ((long) chunkX * chunkX * 4987142) + (chunkX * 5947611L) + (long) chunkZ * chunkZ * 4392871L + (chunkZ * 389711L) ^ pSalt).nextFloat();
-        this.map.put(v, val);
-        return val;
+        if(this.level instanceof ServerLevel serverLevel) {
+            WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(0L));
+            worldgenrandom.setDecorationSeed(serverLevel.getSeed(), chunkPos.x, chunkPos.z);
+            return worldgenrandom.nextFloat();
+        }
+        return 0.0F;
     }
 
+    public float getReservoir(ChunkPos chunkPos)
+    {
+        Float level = this.map.get(chunkPos);
+        if(level == null) {
+            level = getReservoirWorldInfo(chunkPos);
+            this.map.put(chunkPos, level);
+        }
+        return level;
+    }
 
     @Override
     public Tag serializeNBT()
     {
         CompoundTag tag = new CompoundTag();
+
+        this.map.forEach(((chunkPos, reservoir) -> {
+
+        }));
         return tag;
     }
 

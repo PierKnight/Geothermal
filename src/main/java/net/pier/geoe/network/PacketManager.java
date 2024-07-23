@@ -20,6 +20,7 @@ public class PacketManager
     public static void init()
     {
         registerMessage(PacketLoseFluid.class, PacketLoseFluid::new);
+        registerMessage(PacketMultiBlockInfo.class, PacketMultiBlockInfo::new);
     }
 
 

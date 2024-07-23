@@ -2,12 +2,15 @@ package net.pier.geoe.blockentity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -46,11 +49,19 @@ public abstract class BaseBlockEntity extends BlockEntity
     }
 
     @Override
-    public CompoundTag getUpdateTag()
-    {
-        CompoundTag tag = super.getUpdateTag();
-        writeTag(tag);
+    @NotNull
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = new CompoundTag();
+        this.writeTag(tag);
         return tag;
+    }
+
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        CompoundTag compoundtag = pkt.getTag();
+        if (compoundtag != null) {
+            handleUpdateTag(compoundtag);
+        }
     }
 
     @Nullable
@@ -62,7 +73,7 @@ public abstract class BaseBlockEntity extends BlockEntity
 
     public void syncInfo()
     {
-        BlockState state = this.level.getBlockState(this.getBlockPos());
-        level.sendBlockUpdated(this.getBlockPos(), state, state, 2);
+        level.sendBlockUpdated(this.getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        setChanged();
     }
 }

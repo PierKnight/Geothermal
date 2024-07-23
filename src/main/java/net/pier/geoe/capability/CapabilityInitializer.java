@@ -35,7 +35,7 @@ public class CapabilityInitializer
     public static void capabilityAttachLevel(final AttachCapabilitiesEvent<Level> event)
     {
         attachCapability("pipe_network", event, WorldNetworkCapability::new, WorldNetworkCapability.CAPABILITY);
-        attachCapability("geo_reservoir", event, ReservoirCapability::new, ReservoirCapability.CAPABILITY);
+        attachCapability("geo_reservoir", event, () -> new ReservoirCapability(event.getObject()), ReservoirCapability.CAPABILITY);
     }
 
     @SubscribeEvent

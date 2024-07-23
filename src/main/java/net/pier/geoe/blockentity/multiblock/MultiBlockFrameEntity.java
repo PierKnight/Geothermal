@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.pier.geoe.blockentity.BaseBlockEntity;
@@ -13,7 +14,7 @@ import org.lwjgl.opengl.GL14;
 public abstract class MultiBlockFrameEntity extends BaseBlockEntity
 {
 
-    private BlockPos controllerPos;
+    private BlockPos controllerPos = null;
 
     public MultiBlockFrameEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState)
     {
@@ -24,13 +25,20 @@ public abstract class MultiBlockFrameEntity extends BaseBlockEntity
     @Override
     public void readTag(CompoundTag tag)
     {
-
+        if(tag.contains("controllerPos"))
+            this.controllerPos = NbtUtils.readBlockPos(tag.getCompound("controllerPos"));
     }
 
     @Override
     public void writeTag(CompoundTag tag)
     {
+        if(controllerPos != null)
+            tag.put("controllerPos",NbtUtils.writeBlockPos(controllerPos));
+    }
 
+    public void updateController(MultiBlockControllerEntity multiBlockControllerEntity)
+    {
+        this.controllerPos = multiBlockControllerEntity.getBlockPos();
     }
 
 }

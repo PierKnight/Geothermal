@@ -102,7 +102,7 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         {
             pLevel.getChunkAt(pPos).getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap ->
             {
-                System.out.println(cap.getValue(pPos.getX() >> 4, pPos.getZ() >> 4) + " + " + new ChunkPos(pPos));
+                //System.out.println(cap.getValue(pPos.getX() >> 4, pPos.getZ() >> 4) + " + " + new ChunkPos(pPos));
             });
         }
         LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);

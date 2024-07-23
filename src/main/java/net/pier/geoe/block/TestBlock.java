@@ -8,39 +8,24 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.pier.geoe.blockentity.TestBlockEntity;
+import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class TestBlock extends Block implements EntityBlock
+public class TestBlock extends ControllerBlock<TestBlockEntity>
 {
     public TestBlock(Properties pProperties)
     {
         super(pProperties);
     }
 
-    public boolean useShapeForLightOcclusion(BlockState pState) {
-        return true;
-    }
-
-
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit)
-    {
-
-        if(pLevel.getBlockEntity(pPos) instanceof TestBlockEntity entity)
-        {
-            entity.updateStructure();
-        }
-
-        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+    public TestBlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new TestBlockEntity(blockPos,blockState);
     }
 
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState)
-    {
-        return new TestBlockEntity(pPos, pState);
-    }
 }

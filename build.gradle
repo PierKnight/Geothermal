@@ -16,7 +16,7 @@ minecraft {
 
     mappings channel: 'parchment', version: '2022.07.17-1.18.2'
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     runs {

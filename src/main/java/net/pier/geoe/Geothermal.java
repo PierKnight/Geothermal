@@ -1,16 +1,17 @@
 package net.pier.geoe;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -18,19 +19,22 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.capability.CapabilityInitializer;
 import net.pier.geoe.network.PacketManager;
+import net.pier.geoe.network.PacketMultiBlockInfo;
 import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeConfiguredFeatures;
 import net.pier.geoe.register.GeoeFeatures;
 import net.pier.geoe.register.GeoeItems;
 import org.slf4j.Logger;
-import oshi.util.tuples.Pair;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -42,8 +46,8 @@ public class Geothermal
     public static final String MODNAME = "Geothermal";
     public static final String MODVERSION = ModList.get().getModFileById(MODID).versionString();
 
-    // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
+
 
     public static final CreativeModeTab CREATIVE_TAB = new CreativeModeTab(MODID)
     {
@@ -120,6 +124,18 @@ public class Geothermal
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(PlayerEvent.PlayerLoggedInEvent event)
+    {
+        if(event.getPlayer() instanceof ServerPlayer serverPlayer)
+        {
+
+            LOGGER.info("LOGIN");
+            PacketManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new PacketMultiBlockInfo());
+        }
+
     }
 
 

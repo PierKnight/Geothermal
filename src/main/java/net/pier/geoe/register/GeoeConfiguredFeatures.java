@@ -37,7 +37,7 @@ public class GeoeConfiguredFeatures
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void initBiome(final BiomeLoadingEvent event)
     {
-        event.getGeneration().addFeature(GenerationStep.Decoration.RAW_GENERATION, GEYSER_PLACE);
+        event.getGeneration().addFeature(GenerationStep.Decoration.LAKES, GEYSER_PLACE);
     }
 
 }

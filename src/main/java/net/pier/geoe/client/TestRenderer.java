@@ -1,25 +1,51 @@
 package net.pier.geoe.client;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.debug.CollisionBoxRenderer;
+import net.minecraft.client.renderer.entity.FallingBlockRenderer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.model.data.EmptyModelData;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.TestBlockEntity;
+import net.pier.geoe.blockentity.VertexWrapper;
+import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
 import net.pier.geoe.world.GeyserFeature;
 
 import java.util.HashMap;
@@ -32,7 +58,9 @@ import static net.minecraft.world.level.levelgen.RandomSupport.seedUniquifier;
 public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
 {
 
-    private static final Map<Fluid, TextureAtlasSprite> map = new HashMap<>();
+    private static final VertexWrapper blockVertexWrapper = new VertexWrapper(null,0.33F);
+
+    private static FakeWorld fakeWorld = null;
 
     private final BlockEntityRendererProvider.Context context;
 
@@ -41,19 +69,71 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
         this.context = context;
     }
 
+    //private static PerlinSimplexNoise noise = new PerlinSimplexNoise(new SingleThreadedRandomSource(new Random().nextLong() * 1000000L), List.of(0));
 
-    private static PerlinSimplexNoise noise = new PerlinSimplexNoise(new SingleThreadedRandomSource(new Random().nextLong() * 1000000L), List.of(0));
+    private static ChestBlockEntity chest = null;
 
     @Override
     public void render(TestBlockEntity pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
     {
+
+        Level level = pBlockEntity.getLevel();
+        if(level == null)
+            return;
+
+        if(pBlockEntity.isComplete())
+            return;
+
+
+        if(chest == null)
+            chest = new ChestBlockEntity(pBlockEntity.getBlockPos(), Blocks.CHEST.defaultBlockState());
+
+        MultiBlockInfo multiBlockInfo = pBlockEntity.getMultiBlock();
+        BlockState controllerState = level.getBlockState(pBlockEntity.getBlockPos());
+
+        if(multiBlockInfo != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
+
+            Direction direction = controllerState.getValue(ControllerBlock.FACING);
+            
+            if(fakeWorld == null)
+                fakeWorld = new FakeWorld(multiBlockInfo, level);
+            fakeWorld.setLevel(level);
+
+            for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks()) {
+
+                BlockState state = structureBlock.state;
+
+                BlockPos offsetPos = multiBlockInfo.getOffsetPos(structureBlock.pos,direction);
+                if (state.getRenderShape() == RenderShape.MODEL) {
+
+                    BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
+                    if(currentBlock != structureBlock.state && !structureBlock.state.isAir()) {
+                        poseStack.pushPose();
+                        poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
+                        poseStack.scale(0.5F,0.5F,0.5F);
+                        poseStack.translate(0.5F,0.5F,0.5F);
+                        RenderType type = RenderHelper.depthTranslucent();
+                        BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
+                        BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
+                        blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
+                        blockRenderDispatcher.getModelRenderer().tesselateBlock(fakeWorld,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
+
+                        poseStack.popPose();
+                    }
+                }
+
+            }
+        }
+
+
+
         /*
         VertexConsumer squareNoiseBuffer = pBufferSource.getBuffer(RenderType.lightning());
 
         float sizeSquare = 0.5F;
 
         int totalGood = 0;
-        if(pBlockEntity.getLevel().getGameTime() % 20 == 0)
+        if(level.getGameTime() % 20 == 0)
             noise = new PerlinSimplexNoise(new SingleThreadedRandomSource(new Random().nextLong() * 1000000L), List.of(-2,-1,0));
         for(int i = 0;i < 32;i++)
         {
@@ -82,6 +162,7 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
 
          */
 
+        /*
         if(pBlockEntity.fluidAABB == null)
             return;
 
@@ -95,7 +176,7 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
 
         ResourceLocation resourceLocation = Fluids.WATER.getAttributes().getStillTexture();
 
-        Fluids.WATER.getAttributes().getColor(pBlockEntity.getLevel(), pBlockEntity.getBlockPos());
+        Fluids.WATER.getAttributes().getColor(level, pBlockEntity.getBlockPos());
         TextureAtlasSprite liquidTexture = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(resourceLocation);
 
 
@@ -108,7 +189,7 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
 
         boolean flag = pBlockEntity.fluidAABB.intersects(vec, vec);
 
-        double fraction = (Math.sin((pBlockEntity.getLevel().getGameTime() + pPartialTick) * 0.1D) + 1D) * 0.5;
+        double fraction = (Math.sin((level.getGameTime() + pPartialTick) * 0.1D) + 1D) * 0.5;
         double height = relativePos.maxY * fraction + (1D - fraction) * relativePos.minY;
         int c = (int)relativePos.minZ;
 
@@ -202,6 +283,9 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
         }
 
         poseStack.popPose();
+
+         */
+
 
     }
 

@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,10 +39,6 @@ public class GeyserFeature extends Feature<NoneFeatureConfiguration>
         super(pCodec);
     }
 
-    private static PerlinSimplexNoise NOISE;
-
-    private static final Random RANDOM_SHIT = new Random();
-    private static long lastSeed = -1;
 
     @Override
     public boolean place(NoneFeatureConfiguration pConfig, WorldGenLevel pLevel, ChunkGenerator pChunkGenerator, Random pRandom, BlockPos pOrigin)
@@ -59,23 +56,9 @@ public class GeyserFeature extends Feature<NoneFeatureConfiguration>
 
 
         ReservoirCapability cap = context.level().getLevel().getCapability(ReservoirCapability.CAPABILITY).orElse(null);
-        if(cap != null && cap.generateReservoir(worldgenlevel.getLevel().getSeed(), origin.getX() >> 4, origin.getZ() >> 4) < 0.5F)
-            return false;
 
 
-
-
-        synchronized (GeyserFeature.class)
-        {
-            if(NOISE == null)
-                NOISE = new PerlinSimplexNoise(new SingleThreadedRandomSource(context.level().getSeed()), ImmutableList.of(0));
-
-        }
-        synchronized (GeyserFeature.RANDOM_SHIT)
-        {
-            if(lastSeed != worldgenlevel.getSeed())
-                RANDOM_SHIT.setSeed(lastSeed);
-        }
+        float val = cap.getReservoir(context.level().getLevel(),new ChunkPos(context.origin()));
 
 
         float a = 1F + random.nextFloat() * 1.5F;
