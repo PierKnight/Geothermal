@@ -25,9 +25,4 @@ public class GeoeParticleTypes {
 
     public static final RegistryObject<ParticleType<FluidParticleOption>> GAS_TYPE = PARTICLE_TYPES.register("gas", GasParticleType::new);
 
-    public static void init()
-    {
-        PARTICLE_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
-    }
-
 }

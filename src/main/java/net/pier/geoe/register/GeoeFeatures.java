@@ -15,8 +15,4 @@ public class GeoeFeatures
     public static final RegistryObject<Feature<NoneFeatureConfiguration>> GEYSER = FEATURES.register("geyser", () -> new GeyserFeature(NoneFeatureConfiguration.CODEC));
 
 
-    public static void init()
-    {
-        FEATURES.register(FMLJavaModLoadingContext.get().getModEventBus());
-    }
 }
