@@ -18,31 +18,11 @@ public class GeoeBlocks
 {
 
     public static final DeferredRegister<Block> REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS, Geothermal.MODID);
+    public static final RegistryObject<Block> TEST = REGISTER.register("test", () -> new TestBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)));
+    public static final RegistryObject<Block> PIPE = REGISTER.register("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)));
 
     public static final DeferredRegister<BlockEntityType<?>> BE_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Geothermal.MODID);
-
-    public static void init() {
-        GeoeBlocks.REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
-        GeoeBlocks.BE_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
-        Test.init();
-
-
-
-    }
-
-    public static final class Test {
-
-
-        public static final RegistryObject<Block> PIPE = REGISTER.register("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)));
-        public static final RegistryObject<Block> TEST = REGISTER.register("test", () -> new TestBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)));
-        public static final RegistryObject<BlockEntityType<TestBlockEntity>> TEST_BE = BE_REGISTER.register("test_type", () -> BlockEntityType.Builder.of(TestBlockEntity::new, TEST.get()).build(null));
-
-
-
-        public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
-
-        public static void init() {}
-    }
-
+    public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
+    public static final RegistryObject<BlockEntityType<TestBlockEntity>> TEST_BE = BE_REGISTER.register("test_type", () -> BlockEntityType.Builder.of(TestBlockEntity::new, TEST.get()).build(null));
 
 }

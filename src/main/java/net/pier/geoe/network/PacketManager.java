@@ -19,7 +19,7 @@ public class PacketManager
 
     public static void init()
     {
-        registerMessage(PacketLoseFluid.class, PacketLoseFluid::new);
+        registerMessage(PacketGasSound.class, PacketGasSound::new);
         registerMessage(PacketMultiBlockInfo.class, PacketMultiBlockInfo::new);
     }
 

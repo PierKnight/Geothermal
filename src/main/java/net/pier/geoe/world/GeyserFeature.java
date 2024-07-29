@@ -9,6 +9,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -17,12 +18,16 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.GeodeFeature;
+import net.minecraft.world.level.levelgen.feature.NetherFortressFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.pier.geoe.capability.ReservoirCapability;
+import net.pier.geoe.capability.world.Reservoir;
+import net.pier.geoe.register.GeoeFeatures;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -58,7 +63,8 @@ public class GeyserFeature extends Feature<NoneFeatureConfiguration>
         ReservoirCapability cap = context.level().getLevel().getCapability(ReservoirCapability.CAPABILITY).orElse(null);
 
 
-        float val = cap.getReservoir(context.level().getLevel(),new ChunkPos(context.origin()));
+
+        Reservoir val = cap.getReservoirWorldInfo(new ChunkPos(context.origin()));
 
 
         float a = 1F + random.nextFloat() * 1.5F;
@@ -70,7 +76,6 @@ public class GeyserFeature extends Feature<NoneFeatureConfiguration>
         float dimensionA = Mth.ceil(Mth.sqrt(size * a * a)) + 0.5F;
         float dimensionB = Mth.ceil(Mth.sqrt(size * b * b));
         float dimensionC = Mth.ceil(Mth.sqrt(size * c * c)) + 0.5F;
-
 
 
         BlockPos.MutableBlockPos mutableBlockPos = origin.mutable();

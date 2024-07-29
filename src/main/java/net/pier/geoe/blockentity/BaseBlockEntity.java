@@ -73,7 +73,7 @@ public abstract class BaseBlockEntity extends BlockEntity
 
     public void syncInfo()
     {
-        level.sendBlockUpdated(this.getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
-        setChanged();
+        if(level != null)
+            level.sendBlockUpdated(this.getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 }

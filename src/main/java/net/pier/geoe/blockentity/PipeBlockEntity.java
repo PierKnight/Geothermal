@@ -4,13 +4,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.block.EnumPipeConnection;
-import net.pier.geoe.capability.world.WorldNetworkCapability;
+import net.pier.geoe.block.GeothermalPipeBlock;
+import net.pier.geoe.client.sound.SoundManager;
+import net.pier.geoe.network.PacketGasSound;
+import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.register.GeoeBlocks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,18 +25,25 @@ import java.util.UUID;
 
 public class PipeBlockEntity extends BaseBlockEntity {
 
-    private EnumPipeConnection[] connection = new EnumPipeConnection[6];
-    public UUID networkUUID;
+    private final EnumPipeConnection[] connection = new EnumPipeConnection[6];
+    private UUID networkUUID;
     int tankConnections = 0;
+    private FluidStack fluidStack = FluidStack.EMPTY;
+
+    private boolean shouldSync = false;
 
     public PipeBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
-        super(GeoeBlocks.Test.PIPE_BE.get(), pPos, pBlockState);
+        super(GeoeBlocks.PIPE_BE.get(), pPos, pBlockState);
         Arrays.fill(connection,EnumPipeConnection.NONE);
     }
 
     public UUID getNetworkUUID() {
         return networkUUID;
+    }
+    public void setNetworkUUID(UUID uuid) {
+        this.networkUUID = uuid;
+        this.setChanged();
     }
 
     public EnumPipeConnection getConnection(Direction direction)
@@ -41,26 +53,36 @@ public class PipeBlockEntity extends BaseBlockEntity {
 
     public void setConnection(Direction direction, EnumPipeConnection connection)
     {
-        if(this.connection[direction.get3DDataValue()].isTankConnection()) tankConnections -= 1;
+
+        if(this.connection[direction.get3DDataValue()] == EnumPipeConnection.OUTPUT) tankConnections -= 1;
         this.connection[direction.get3DDataValue()] = connection;
-        if(connection.isTankConnection()) tankConnections += 1;
+        if(connection == EnumPipeConnection.OUTPUT) tankConnections += 1;
+        if(tankConnections == 0)
+        {
+            this.fluidStack = FluidStack.EMPTY;
+            this.syncInfo();
+        }
     }
 
-    public boolean hasTankConnections()
+    public int getTankConnections()
     {
-        return tankConnections > 0;
+        return tankConnections;
     }
 
+    public FluidStack getFluidStack() {
+        return fluidStack;
+    }
 
     @Override
     public void readTag(CompoundTag tag) {
-        if(tag.hasUUID("network"))
+        if(tag.contains("network"))
             this.networkUUID = tag.getUUID("network");
 
         ListTag listTag = tag.getList("connections",10);
         for (int i = 0; i < listTag.size(); i++)
             this.connection[i] = EnumPipeConnection.indexOf(listTag.getCompound(i).getByte("connectionType"));
-        this.tankConnections = tag.getByte("tankConnections");
+        this.tankConnections = tag.getInt("tankConnections");
+
     }
 
     @Override
@@ -76,20 +98,37 @@ public class PipeBlockEntity extends BaseBlockEntity {
             listTag.add(connectionTag);
         }
         tag.put("connections",listTag);
-        tag.putByte("tankConnections",(byte) this.tankConnections);
+        tag.putInt("tankConnections",this.tankConnections);
     }
 
+    @Override
+    public @NotNull CompoundTag getUpdateTag() {
+
+        CompoundTag tag = new CompoundTag();
+        this.fluidStack.writeToNBT(tag);
+        return tag;
+    }
 
     @Override
     public void handleUpdateTag(CompoundTag tag) {
         super.handleUpdateTag(tag);
+        this.fluidStack = FluidStack.loadFluidStackFromNBT(tag);
 
-        FluidStack stack = FluidStack.loadFluidStackFromNBT(tag.getCompound("fluid"));
-        System.out.println("LOADED " + stack.getFluid().getRegistryName());
+
+        GeothermalPipeBlock.PROPERTY_BY_DIRECTION.forEach((direction, enumPipeConnectionEnumProperty) -> {
+            if (!fluidStack.getFluid().getAttributes().isGaseous())
+                SoundManager.stopGasLeak(getBlockPos(), direction);
+            else if(this.getBlockState().getValue(enumPipeConnectionEnumProperty) == EnumPipeConnection.OUTPUT)
+                SoundManager.playGasLeak(getBlockPos(), direction);
+        });
     }
 
-    @Override
-    public void load(@NotNull CompoundTag pTag) {
-        super.load(pTag);
+    public void checkForFluidUpdate(FluidStack fluidStack)
+    {
+        if (this.tankConnections > 0 && !fluidStack.getFluid().equals(this.fluidStack.getFluid())) {
+            this.fluidStack = fluidStack.copy();
+            this.syncInfo();
+        }
     }
+
 }

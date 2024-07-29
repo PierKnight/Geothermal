@@ -4,25 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FurnaceBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.Tags;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
 import net.pier.geoe.register.GeoeBlocks;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class TestBlockEntity extends MultiBlockControllerEntity
 {
@@ -30,7 +19,7 @@ public class TestBlockEntity extends MultiBlockControllerEntity
 
     public TestBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
-        super(GeoeBlocks.Test.TEST_BE.get(), pPos, pBlockState);
+        super(GeoeBlocks.TEST_BE.get(), pPos, pBlockState);
     }
 
     @Override

@@ -6,33 +6,24 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -40,20 +31,17 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.pier.geoe.Geothermal;
-import net.pier.geoe.NetworkInfo;
+import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.blockentity.PipeBlockEntity;
-import net.pier.geoe.capability.ReservoirCapability;
+import net.pier.geoe.capability.world.PipeNetwork;
 import net.pier.geoe.capability.world.WorldNetworkCapability;
+import net.pier.geoe.network.PacketGasSound;
+import net.pier.geoe.network.PacketManager;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -77,16 +65,18 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         p_55164_.put(Direction.DOWN, DOWN);
     }));
 
-    private static final double SWEET_45 = Math.cos(Math.PI / 4D);
+    private static final float APOTHEM = 0.3125F;
 
     protected final VoxelShape[] shapeByIndex;
+
+
 
 
     public GeothermalPipeBlock(BlockBehaviour.Properties pProperties)
     {
         super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(NORTH, EnumPipeConnection.NONE).setValue(EAST, EnumPipeConnection.NONE).setValue(SOUTH, EnumPipeConnection.NONE).setValue(WEST, EnumPipeConnection.NONE).setValue(UP, EnumPipeConnection.NONE).setValue(DOWN, EnumPipeConnection.NONE));
-        this.shapeByIndex = this.makeShapes(0.3125F);
+        this.shapeByIndex = this.makeShapes(APOTHEM);
     }
 
     @Override
@@ -98,13 +88,6 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         if(pOldState.is(this))
             return;
 
-        if(pLevel instanceof ServerLevel serverLevel)
-        {
-            pLevel.getChunkAt(pPos).getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap ->
-            {
-                //System.out.println(cap.getValue(pPos.getX() >> 4, pPos.getZ() >> 4) + " + " + new ChunkPos(pPos));
-            });
-        }
         LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
         lazeCap.ifPresent(capability -> capability.onPipePlaced(pLevel,pPos));
     }
@@ -114,10 +97,10 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     @Nonnull
     public BlockState updateShape(@Nonnull BlockState pState,@Nonnull Direction pDirection,@Nonnull BlockState pNeighborState,@Nonnull LevelAccessor pLevel,@Nonnull BlockPos pCurrentPos,@Nonnull BlockPos pNeighborPos)
     {
-        if(pLevel instanceof ServerLevel)
+        if(pLevel instanceof ServerLevel level)
         {
-            LazyOptional<WorldNetworkCapability> lazeCap = ((Level)pLevel).getCapability(WorldNetworkCapability.CAPABILITY);
-            lazeCap.ifPresent(capability -> capability.pipeChanged((Level)pLevel,pCurrentPos, pState, pDirection,pNeighborState));
+            LazyOptional<WorldNetworkCapability> lazeCap = level.getCapability(WorldNetworkCapability.CAPABILITY);
+            lazeCap.ifPresent(capability -> capability.pipeChanged(level,pCurrentPos, pState, pDirection,pNeighborState));
         }
         return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
     }
@@ -128,36 +111,24 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     {
 
         if (!pState.is(pNewState.getBlock())) {
-
             LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-            if(!pLevel.isClientSide)
-                lazeCap.ifPresent(capability -> capability.onPipeBroken(pLevel, pPos, (e) ->  super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving)));
+            if(pLevel.getBlockEntity(pPos) instanceof PipeBlockEntity pipe) {
+                PacketManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> pLevel.getChunkAt(pPos)), new PacketGasSound(pPos));
+                super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+                lazeCap.ifPresent(capability -> capability.onPipeBroken(pLevel, pPos, pipe));
+            }
+
         }
+
 
     }
 
-
-    private void useOnFacing(Level pLevel, BlockState pState, BlockPos pPos, Direction direction, boolean sneak)
+    private void useOnFacing(Level pLevel, BlockState pState, BlockPos pPos, Direction direction)
     {
         LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-
+        EnumProperty<EnumPipeConnection> sideProperty = PROPERTY_BY_DIRECTION.get(direction);
         if(!pLevel.isClientSide)
-        {
-            lazeCap.ifPresent(capability ->
-            {
-                if(!sneak)
-                {
-                    EnumProperty<EnumPipeConnection> sideProperty = PROPERTY_BY_DIRECTION.get(direction);
-
-                    BlockState nearBlockState = pLevel.getBlockState(pPos.relative(direction));
-
-                    if(nearBlockState.is(this))
-                        capability.updateConnection(pLevel,pPos,direction,!pState.getValue(sideProperty).isConnected());
-                    else
-                        capability.updateTankConnection(pLevel,pPos,direction);
-                }
-            });
-        }
+            lazeCap.ifPresent(capability -> capability.updateConnection(pLevel, pPos,direction,!pState.getValue(sideProperty).isConnected()));
     }
 
     @Override
@@ -168,52 +139,22 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         if(pPlayer.getItemInHand(pHand).is(Items.EMERALD))
         {
             Vec3 vec = pHit.getLocation().subtract(pPos.getX() + 0.5D, pPos.getY() + 0.5D, pPos.getZ() + 0.5D);
-
             for (Direction direction : DIRECTIONS)
             {
-                double e = vec.normalize().dot(new Vec3(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ()));
-                if(e >= SWEET_45)
+                Vec3i normal = direction.getNormal();
+                double projection = normal.getX() * vec.x + normal.getY() * vec.y + normal.getZ() * vec.z;
+                if(projection > APOTHEM)
                 {
-                    useOnFacing(pLevel, pState, pPos, direction, false);
+                    useOnFacing(pLevel, pState, pPos, direction);
                     return InteractionResult.SUCCESS;
                 }
-
             }
-            useOnFacing(pLevel, pState, pPos, pHit.getDirection(), false);
+            useOnFacing(pLevel, pState, pPos, pHit.getDirection());
             return InteractionResult.SUCCESS;
-        }
-        else
-        {
-            useOnFacing(pLevel, pState, pPos, pHit.getDirection(), true);
         }
         return InteractionResult.FAIL;
     }
 
-    @Override
-    public void animateTick(BlockState pState, Level pLevel, BlockPos pPos, Random pRandom)
-    {
-        if(pLevel.getBlockEntity(pPos) instanceof PipeBlockEntity pipe) {
-            Optional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY).resolve();
-            NetworkInfo fluid = Geothermal.networks.get(pipe.getNetworkUUID());
-            if (fluid != null && !fluid.getFluidStack().isEmpty())
-                for (int i = 0; i < 13; i++) {
-                    double x = (double) pPos.getX() + pRandom.nextDouble();
-                    double y = (double) pPos.getY() + pRandom.nextDouble();
-                    double z = (double) pPos.getZ() + pRandom.nextDouble();
-                    pLevel.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, fluid.getFluidStack().getFluid().defaultFluidState().createLegacyBlock()), x, y, z, 0.0, 0.0, 0.0);
-                }
-        }
-    }
-
-    @Override
-    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack)
-    {
-        if(pLevel.isClientSide)
-            return;
-
-        //LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-        //lazeCap.ifPresent(capability -> capability.onPipePlaced(pLevel,pPos));
-    }
 
     private VoxelShape[] makeShapes(float pApothem) {
         float f = 0.5F - pApothem;
@@ -258,12 +199,6 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         pBuilder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public PushReaction getPistonPushReaction(BlockState pState) {
-        return PushReaction.BLOCK;
-    }
-
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
@@ -271,8 +206,10 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         return new PipeBlockEntity(pPos,pState);
     }
 
-
-
-
-
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        boolean found = PROPERTY_BY_DIRECTION.values().stream().anyMatch(property -> pState.getValue(property) == EnumPipeConnection.INPUT || pState.getValue(property) == EnumPipeConnection.OUTPUT);
+        BlockEntityTicker<PipeBlockEntity> ticker = pLevel.isClientSide ? PipeNetwork::clientTick : PipeNetwork::serverTick;
+        return found ? (BlockEntityTicker<T>) ticker : null;
+    }
 }

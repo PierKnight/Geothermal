@@ -34,7 +34,7 @@ public class CapabilityInitializer
     @SubscribeEvent
     public static void capabilityAttachLevel(final AttachCapabilitiesEvent<Level> event)
     {
-        attachCapability("pipe_network", event, WorldNetworkCapability::new, WorldNetworkCapability.CAPABILITY);
+        attachCapability("pipe_network", event, () -> new WorldNetworkCapability(), WorldNetworkCapability.CAPABILITY);
         attachCapability("geo_reservoir", event, () -> new ReservoirCapability(event.getObject()), ReservoirCapability.CAPABILITY);
     }
 
@@ -45,16 +45,17 @@ public class CapabilityInitializer
     }
 
     @SubscribeEvent
-    public static void chunk(final ChunkEvent.Load event)
+    public static void chunkLoad(final ChunkEvent.Load event)
     {
-        ChunkPos chunkPos = event.getChunk().getPos();
-
-
         if(event.getChunk() instanceof LevelChunk levelChunk && levelChunk.getLevel() instanceof ServerLevel level)
-        {
-            //levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.generateReservoir(level.getSeed(), chunkPos.x, chunkPos.z));
-        }
+            levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.appendTickingReservoir(levelChunk.getPos()));
+    }
 
+    @SubscribeEvent
+    public static void chunkUnload(final ChunkEvent.Unload event)
+    {
+        if(event.getChunk() instanceof LevelChunk levelChunk && levelChunk.getLevel() instanceof ServerLevel level)
+            levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.tickingReservoirs.remove(levelChunk.getPos()));
     }
 
 
@@ -66,20 +67,16 @@ public class CapabilityInitializer
     }
 
     @SubscribeEvent
-    public static void updateNetwork(final TickEvent.WorldTickEvent event)
+    public static void updateWorld(final TickEvent.WorldTickEvent event)
     {
         if(event.side == LogicalSide.CLIENT || event.phase == TickEvent.Phase.START)
             return;
 
         LazyOptional<WorldNetworkCapability> lazeCap = event.world.getCapability(WorldNetworkCapability.CAPABILITY);
-        lazeCap.ifPresent(capability -> capability.tick(event.world));
-    }
+        lazeCap.ifPresent(cap -> cap.tick(event.world));
 
-
-    public static void registerRenders(final EntityRenderersEvent.RegisterRenderers event)
-    {
-        System.out.println("eee");
-        event.registerBlockEntityRenderer(GeoeBlocks.Test.TEST_BE.get(), TestRenderer::new);
+        LazyOptional<ReservoirCapability> reservoirCapabilityLazy = event.world.getCapability(ReservoirCapability.CAPABILITY);
+        reservoirCapabilityLazy.ifPresent(ReservoirCapability::tick);
     }
 
     private static <T extends INBTSerializable<Tag>> void attachCapability(String name, AttachCapabilitiesEvent<?> event, Supplier<T> supplier, Capability<T> c)

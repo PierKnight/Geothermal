@@ -1,17 +1,31 @@
 package net.pier.geoe;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.PlayerCloudParticle;
+import net.minecraft.client.sounds.MusicManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.JukeboxBlock;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -23,10 +37,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.capability.CapabilityInitializer;
 import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.network.PacketMultiBlockInfo;
-import net.pier.geoe.register.GeoeBlocks;
-import net.pier.geoe.register.GeoeConfiguredFeatures;
-import net.pier.geoe.register.GeoeFeatures;
-import net.pier.geoe.register.GeoeItems;
+import net.pier.geoe.register.*;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -60,29 +71,31 @@ public class Geothermal
     };
 
 
-    public static final Map<UUID, NetworkInfo> networks = new HashMap<>();
+    public static final Map<ChunkPos, Map<BlockPos, FluidStack>> networks = new HashMap<>();
 
     public Geothermal()
     {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
 
+
+        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        eventBus.addListener(this::setup);
+        eventBus.addListener(this::enqueueIMC);
+        eventBus.addListener(this::processIMC);
+        eventBus.addListener(CapabilityInitializer::registerCapabilities);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
         MinecraftForge.EVENT_BUS.register(CapabilityInitializer.class);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(CapabilityInitializer::registerCapabilities);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(CapabilityInitializer::registerRenders);
 
 
-        GeoeFeatures.init();
-        GeoeBlocks.init();
-        GeoeItems.init();
+        GeoeFeatures.FEATURES.register(eventBus);
+        GeoeBlocks.REGISTER.register(eventBus);
+        GeoeBlocks.BE_REGISTER.register(eventBus);
+        GeoeItems.REGISTER.register(eventBus);
+        GeoeParticleTypes.PARTICLE_TYPES.register(eventBus);
+        GeoeSounds.REGISTER.register(eventBus);
+
 
     }
 
@@ -137,6 +150,7 @@ public class Geothermal
         }
 
     }
+
 
 
 }
