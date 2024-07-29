@@ -12,6 +12,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
+import net.pier.geoe.item.WrenchItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class GeoeItems
 
     public static final DeferredRegister<Item> REGISTER = DeferredRegister.create(ForgeRegistries.ITEMS, Geothermal.MODID);
 
-    public static final RegistryObject<Item> WRENCH = REGISTER.register("wrench", () -> new Item(new Item.Properties().tab(Geothermal.CREATIVE_TAB).stacksTo(1)));
+    public static final RegistryObject<Item> WRENCH = REGISTER.register("wrench", WrenchItem::new);
 
 
 }

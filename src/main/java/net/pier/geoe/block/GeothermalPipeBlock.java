@@ -37,6 +37,7 @@ import net.pier.geoe.capability.world.PipeNetwork;
 import net.pier.geoe.capability.world.WorldNetworkCapability;
 import net.pier.geoe.network.PacketGasSound;
 import net.pier.geoe.network.PacketManager;
+import net.pier.geoe.register.GeoeTags;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
@@ -136,7 +137,7 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     @Nonnull
     public InteractionResult use(@Nonnull BlockState pState,@Nonnull Level pLevel, BlockPos pPos,@Nonnull Player pPlayer,@Nonnull InteractionHand pHand, BlockHitResult pHit)
     {
-        if(pPlayer.getItemInHand(pHand).is(Items.EMERALD))
+        if(GeoeTags.isWrench(pPlayer.getItemInHand(pHand)))
         {
             Vec3 vec = pHit.getLocation().subtract(pPos.getX() + 0.5D, pPos.getY() + 0.5D, pPos.getZ() + 0.5D);
             for (Direction direction : DIRECTIONS)
