@@ -1,0 +1,6 @@
+{
+  "block.geothermal_pipe.leak": {
+    "sounds": [ "geoe:gas_leak" ],
+    "subtitle": "geoe.block.pipe.leak"
+  }
+}
