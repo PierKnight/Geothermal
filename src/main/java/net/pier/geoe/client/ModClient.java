@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.client.particle.GasParticle;
+import net.pier.geoe.client.render.TemplateMultiBlockRenderer;
 import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeParticleTypes;
 
@@ -30,7 +31,7 @@ public class ModClient
     @SubscribeEvent
     public static void registerRenders(final EntityRenderersEvent.RegisterRenderers event)
     {
-        event.registerBlockEntityRenderer(GeoeBlocks.TEST_BE.get(), TestRenderer::new);
+        event.registerBlockEntityRenderer(GeoeBlocks.EXTRACTOR_BE.get(), TemplateMultiBlockRenderer::new);
     }
 
 }
