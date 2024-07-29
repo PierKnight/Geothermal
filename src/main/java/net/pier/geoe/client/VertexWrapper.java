@@ -1,4 +1,4 @@
-package net.pier.geoe.blockentity;
+package net.pier.geoe.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
