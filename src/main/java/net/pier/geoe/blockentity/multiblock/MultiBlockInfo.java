@@ -24,11 +24,14 @@ import java.util.function.Predicate;
 public class MultiBlockInfo {
 
 
-    private static final Map<ResourceLocation, MultiBlockInfo> MULTIBLOCKS = new HashMap();
+
+
+
+
+    private static final Map<ResourceLocation, MultiBlockInfo> MULTIBLOCKS = new HashMap<>();
 
     private final StructureTemplate template;
     private final BlockPos pivot;
-
     private final ResourceLocation resourceLocation;
 
     private MultiBlockInfo(ResourceLocation resourceLocation, StructureTemplate template)
@@ -120,7 +123,7 @@ public class MultiBlockInfo {
     {
 
         MultiBlockInfo multiblock = MULTIBLOCKS.get(resourceLocation);
-        if((multiblock == null) && level instanceof ServerLevel serverLevel)
+        if(multiblock == null && level instanceof ServerLevel serverLevel)
         {
             Optional<StructureTemplate> optional = serverLevel.getStructureManager().get(resourceLocation);
             if(optional.isPresent())

@@ -1,4 +1,4 @@
-package net.pier.geoe.client;
+package net.pier.geoe.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -20,12 +20,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.pier.geoe.block.ControllerBlock;
-import net.pier.geoe.blockentity.TestBlockEntity;
 import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
+import net.pier.geoe.blockentity.multiblock.TemplateMultiBlockBlockEntity;
+import net.pier.geoe.client.FakeWorld;
+import net.pier.geoe.client.RenderHelper;
+import net.pier.geoe.client.VertexWrapper;
 
 import java.util.Random;
 
-public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
+public class TemplateMultiBlockRenderer<T extends TemplateMultiBlockBlockEntity> implements BlockEntityRenderer<T>
 {
 
     private static final VertexWrapper blockVertexWrapper = new VertexWrapper(null,0.33F);
@@ -34,7 +37,7 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
 
     private final BlockEntityRendererProvider.Context context;
 
-    public TestRenderer(BlockEntityRendererProvider.Context context)
+    public TemplateMultiBlockRenderer(BlockEntityRendererProvider.Context context)
     {
         this.context = context;
     }
@@ -44,7 +47,7 @@ public class TestRenderer implements BlockEntityRenderer<TestBlockEntity>
     private static ChestBlockEntity chest = null;
 
     @Override
-    public void render(TestBlockEntity pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
+    public void render(T pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
     {
 
         Level level = pBlockEntity.getLevel();

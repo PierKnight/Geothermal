@@ -1,40 +1,35 @@
-package net.pier.geoe.blockentity;
+package net.pier.geoe.blockentity.multiblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
-import net.pier.geoe.register.GeoeBlocks;
 import org.jetbrains.annotations.NotNull;
 
-public class TestBlockEntity extends MultiBlockControllerEntity
+import java.util.HashMap;
+import java.util.Map;
+
+public abstract class TemplateMultiBlockBlockEntity extends MultiBlockControllerEntity
 {
 
+    private final ResourceLocation template;
 
-    public TestBlockEntity(BlockPos pPos, BlockState pBlockState)
+    public TemplateMultiBlockBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, ResourceLocation template) {
+        super(pType, pPos, pBlockState);
+        this.template = template;
+    }
+
+
+    public ResourceLocation getTemplate()
     {
-        super(GeoeBlocks.TEST_BE.get(), pPos, pBlockState);
-    }
-
-    @Override
-    protected boolean assemble() {
-
-        System.out.println("ASSEMBLE!");
-        this.syncInfo();
-        return true;
-    }
-
-    @Override
-    protected boolean disassemble() {
-        System.out.println("DISASSEMBLE!");
-        this.syncInfo();
-        return true;
+        return this.template;
     }
 
     @Override
@@ -48,12 +43,6 @@ public class TestBlockEntity extends MultiBlockControllerEntity
         return info != null && info.checkStructure(this.level,direction,this.getBlockPos());
     }
 
-    @Override
-    public void readTag(CompoundTag tag)
-    {
-        super.readTag(tag);
-
-    }
 
     @Override
     public void writeTag(CompoundTag tag)
@@ -61,21 +50,10 @@ public class TestBlockEntity extends MultiBlockControllerEntity
         super.writeTag(tag);
     }
 
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-
-    }
-
-    @Override
-    public @NotNull CompoundTag getUpdateTag() {
-
-        return super.getUpdateTag();
-    }
 
     public MultiBlockInfo getMultiBlock()
     {
-        return MultiBlockInfo.getMultiBlockInfo(this.getLevel(), new ResourceLocation("geoe:aboba"));
+        return MultiBlockInfo.getMultiBlockInfo(this.getLevel(), this.template);
     }
 
     @Override

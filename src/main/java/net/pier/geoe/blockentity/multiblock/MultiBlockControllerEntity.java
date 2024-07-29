@@ -37,7 +37,7 @@ public abstract class MultiBlockControllerEntity extends BaseBlockEntity
         if (this.isComplete)
         {
             this.disassemble();
-            this.isComplete = false;
+            this.setComplete(false);
         }
     }
 
@@ -46,11 +46,12 @@ public abstract class MultiBlockControllerEntity extends BaseBlockEntity
         if(level.getGameTime() % 10 == 0)
         {
             if(be.isValid()) {
-                if (!be.isComplete && be.assemble())
-                    be.isComplete = true;
+                if (!be.isComplete && be.assemble()) {
+                    be.setComplete(true);
+                }
             }
             else if(be.isComplete && be.disassemble())
-                be.isComplete = false;
+                be.setComplete(false);
 
         }
     }
@@ -59,13 +60,19 @@ public abstract class MultiBlockControllerEntity extends BaseBlockEntity
     public void readTag(CompoundTag tag)
     {
         this.isComplete = tag.getBoolean("complete");
-
     }
 
     @Override
     public void writeTag(CompoundTag tag)
     {
         tag.putBoolean("complete",this.isComplete);
+    }
+
+    private void setComplete(boolean complete)
+    {
+        this.isComplete = complete;
+        this.setChanged();
+        this.syncInfo();
     }
 
 
