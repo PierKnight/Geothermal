@@ -1,7 +1,9 @@
 package net.pier.geoe.client;
 
+import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+@MethodsReturnNonnullByDefault
 public class VertexWrapper implements VertexConsumer {
 
     private VertexConsumer wrapper;
@@ -61,7 +63,4 @@ public class VertexWrapper implements VertexConsumer {
         this.wrapper.unsetDefaultColor();
     }
 
-    public VertexConsumer getWrapper() {
-        return wrapper;
-    }
 }
