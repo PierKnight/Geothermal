@@ -45,10 +45,10 @@ public class FakeWorld implements BlockAndTintGetter {
         this.level = level;
 
 
-        structureSize = multiBlockInfo.getSize();
+        structureSize = multiBlockInfo.getSize(level);
         blockStates = new BlockState[structureSize.getX()][structureSize.getY()][structureSize.getZ()];
 
-        for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks()) {
+        for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks(level)) {
             blockStates[structureBlock.pos.getX()][structureBlock.pos.getY()][structureBlock.pos.getZ()] = structureBlock.state;
 
             BlockPos relativePos = BlockPos.ZERO;
@@ -64,6 +64,11 @@ public class FakeWorld implements BlockAndTintGetter {
 
     @Override
     public int getBrightness(LightLayer pLightType, BlockPos pBlockPos) {
+        return 15;
+    }
+
+    @Override
+    public int getLightEmission(BlockPos pPos) {
         return 15;
     }
 

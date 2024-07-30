@@ -17,19 +17,16 @@ import java.util.function.Supplier;
 
 public class PacketMultiBlockInfo implements IPacket{
 
-    private final Collection<MultiBlockInfo> multiBlockInfos;
+    private final Collection<MultiBlockInfo.StructureData> multiBlockInfos;
 
-    public PacketMultiBlockInfo() {
-        this.multiBlockInfos = MultiBlockInfo.getMultiblocks().values();
+    public PacketMultiBlockInfo(Collection<MultiBlockInfo.StructureData> multiBlockInfos) {
+        this.multiBlockInfos = multiBlockInfos;
     }
 
-    public PacketMultiBlockInfo(MultiBlockInfo info) {
-        this.multiBlockInfos = List.of(info);
-    }
 
     public PacketMultiBlockInfo(FriendlyByteBuf buf)
     {
-        this.multiBlockInfos = buf.readList(friendlyByteBuf -> new MultiBlockInfo(friendlyByteBuf.readNbt()));
+        this.multiBlockInfos = buf.readList(friendlyByteBuf -> MultiBlockInfo.StructureData.readFromTag(buf.readNbt()));
 
     }
 
@@ -43,7 +40,9 @@ public class PacketMultiBlockInfo implements IPacket{
     public void process(Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() ->
         {
-            MultiBlockInfo.updateMultiBlocks(this.multiBlockInfos);
+            this.multiBlockInfos.forEach(structureData -> {
+                MultiBlockInfo.MULTIBLOCK_CACHE.put(structureData.resourceLocation(), structureData);
+            });
         });
     }
 }

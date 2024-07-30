@@ -34,6 +34,7 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.PacketDistributor;
+import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
 import net.pier.geoe.capability.CapabilityInitializer;
 import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.network.PacketMultiBlockInfo;
@@ -41,9 +42,7 @@ import net.pier.geoe.register.*;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -144,9 +143,8 @@ public class Geothermal
     {
         if(event.getPlayer() instanceof ServerPlayer serverPlayer)
         {
-
-            LOGGER.info("LOGIN");
-            PacketManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new PacketMultiBlockInfo());
+            var structures = GeoeMultiBlocks.getMultiblocks().stream().map(multiBlockInfo -> multiBlockInfo.getStructure(event.getPlayer().level)).collect(Collectors.toList());
+            PacketManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new PacketMultiBlockInfo(structures));
         }
 
     }

@@ -10,7 +10,7 @@ import net.pier.geoe.register.GeoeBlocks;
 
 public class ExtractorBlockEntity extends TemplateMultiBlockBlockEntity {
     public ExtractorBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(GeoeBlocks.EXTRACTOR_BE.get(), pPos, pBlockState, new ResourceLocation(Geothermal.MODID, "aboba"));
+        super(GeoeBlocks.EXTRACTOR_BE.get(), pPos, pBlockState, new ResourceLocation(Geothermal.MODID, "extractor"));
     }
 
     @Override

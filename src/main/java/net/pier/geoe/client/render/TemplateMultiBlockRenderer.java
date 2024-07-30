@@ -72,11 +72,11 @@ public class TemplateMultiBlockRenderer<T extends TemplateMultiBlockBlockEntity>
                 fakeWorld = new FakeWorld(multiBlockInfo, level);
             fakeWorld.setLevel(level);
 
-            for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks()) {
+            for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks(level)) {
 
                 BlockState state = structureBlock.state;
 
-                BlockPos offsetPos = multiBlockInfo.getOffsetPos(structureBlock.pos,direction);
+                BlockPos offsetPos = multiBlockInfo.getOffsetPos(level, structureBlock.pos, direction);
                 if (state.getRenderShape() == RenderShape.MODEL) {
 
                     BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
