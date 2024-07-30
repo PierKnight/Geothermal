@@ -5,7 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -18,9 +17,6 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public abstract class ControllerBlock<T extends MultiBlockControllerEntity> extends Block implements EntityBlock {
 

@@ -12,7 +12,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Random;
 import java.util.function.Predicate;
 
 public class Reservoir implements IFluidTank {

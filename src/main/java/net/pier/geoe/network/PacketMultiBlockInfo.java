@@ -2,17 +2,10 @@ package net.pier.geoe.network;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.network.NetworkEvent;
 import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
-import org.apache.commons.compress.utils.ByteUtils;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PacketMultiBlockInfo implements IPacket{

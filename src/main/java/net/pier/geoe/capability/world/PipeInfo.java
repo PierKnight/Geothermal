@@ -1,18 +1,13 @@
 package net.pier.geoe.capability.world;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
 import net.pier.geoe.block.EnumPipeConnection;
-import oshi.util.tuples.Pair;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.nio.channels.Pipe;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;

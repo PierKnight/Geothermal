@@ -1,6 +1,5 @@
 package net.pier.geoe.blockentity.multiblock;
 
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -9,15 +8,10 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.pier.geoe.block.ControllerBlock;
-import net.pier.geoe.network.PacketManager;
-import net.pier.geoe.network.PacketMultiBlockInfo;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

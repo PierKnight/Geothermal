@@ -2,7 +2,6 @@ package net.pier.geoe.blockentity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.blockentity.multiblock.TemplateMultiBlockBlockEntity;

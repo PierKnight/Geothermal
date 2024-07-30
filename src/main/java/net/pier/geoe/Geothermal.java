@@ -1,28 +1,16 @@
 package net.pier.geoe;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.PlayerCloudParticle;
-import net.minecraft.client.sounds.MusicManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.JukeboxBlock;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
@@ -34,7 +22,6 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.PacketDistributor;
-import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
 import net.pier.geoe.capability.CapabilityInitializer;
 import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.network.PacketMultiBlockInfo;
@@ -42,9 +29,8 @@ import net.pier.geoe.register.*;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file

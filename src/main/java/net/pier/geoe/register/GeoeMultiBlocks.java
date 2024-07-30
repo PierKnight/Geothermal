@@ -1,8 +1,6 @@
 package net.pier.geoe.register;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
 
