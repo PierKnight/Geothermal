@@ -9,13 +9,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.pier.geoe.Geothermal;
 import net.pier.geoe.register.GeoeTags;
 
 import javax.annotation.Nonnull;
 
 public class WrenchItem extends Item {
     public WrenchItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(1).tab(Geothermal.CREATIVE_TAB));
     }
 
     @Override
