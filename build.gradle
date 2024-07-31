@@ -122,6 +122,7 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.1.68'
 
+    runtimeOnly fg.deobf('team.chisel.ctm:CTM:1.18.2-1.1.5+5')
     runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465")// core
     //runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465:additions")// Mekanism: Additions
     runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465:generators")// Mekanism: Generators

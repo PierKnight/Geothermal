@@ -20,7 +20,8 @@ public class GeoeBlockTags extends BlockTagsProvider {
 
         tag(GeoeTags.Blocks.WRENCH_BREAKABLE)
                 .add(GeoeBlocks.PIPE.get())
-                .add(GeoeBlocks.EXTRACTOR.get());
+                .add(GeoeBlocks.EXTRACTOR.get())
+                .add(GeoeBlocks.GLASS.get());
 
     }
 }

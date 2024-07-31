@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "complete=false":  { "model": "geoe:block/glass" },
+    "complete=true":   { "model": "geoe:block/glass" }
+  }
+}
