@@ -8,7 +8,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LightChunkGetter;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -23,10 +22,10 @@ public class FakeWorld implements BlockAndTintGetter {
     private final LevelLightEngine lightEngine;
     private Level level;
 
-    private final BlockState[][][] blockStates;
-    private final Vec3i structureSize;
+    private Vec3i structureSize;
+    private MultiBlockInfo.StructureData structureData;
 
-    public FakeWorld(MultiBlockInfo multiBlockInfo, Level level)
+    public FakeWorld()
     {
         this.lightEngine = new LevelLightEngine(new LightChunkGetter() {
             @Override
@@ -39,20 +38,6 @@ public class FakeWorld implements BlockAndTintGetter {
                 return FakeWorld.this;
             }
         }, false, false);
-        this.level = level;
-
-
-        structureSize = multiBlockInfo.getSize(level);
-        blockStates = new BlockState[structureSize.getX()][structureSize.getY()][structureSize.getZ()];
-
-        for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks(level)) {
-            blockStates[structureBlock.pos.getX()][structureBlock.pos.getY()][structureBlock.pos.getZ()] = structureBlock.state;
-
-            BlockPos relativePos = BlockPos.ZERO;
-            if(structureBlock.state.is(Blocks.GOLD_BLOCK))
-                relativePos = structureBlock.pos;
-        }
-
 
     }
 
@@ -98,7 +83,7 @@ public class FakeWorld implements BlockAndTintGetter {
                 pos.getZ() < 0 || pos.getZ() >= this.structureSize.getZ())
             return Blocks.AIR.defaultBlockState();
 
-        BlockState state = this.blockStates[pos.getX()][pos.getY()][pos.getZ()];
+        BlockState state = this.structureData.blockStates[pos.getX()][pos.getY()][pos.getZ()];
         return state != null ? state : Blocks.AIR.defaultBlockState();
     }
 
@@ -117,7 +102,9 @@ public class FakeWorld implements BlockAndTintGetter {
         return 0;
     }
 
-    public void setLevel(Level level) {
+    public void updateWorld(Level level, MultiBlockInfo multiBlockInfo) {
         this.level = level;
+        this.structureData = multiBlockInfo.getStructure(level);
+        this.structureSize = multiBlockInfo.getSize(level);
     }
 }

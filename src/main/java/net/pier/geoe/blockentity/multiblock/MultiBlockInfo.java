@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.pier.geoe.block.ControllerBlock;
@@ -35,27 +36,28 @@ public class MultiBlockInfo {
 
 
     public Vec3i getSize(Level level) {
-        return this.getStructure(level).structureTemplate().getSize();
+        return this.getStructure(level).structureTemplate.getSize();
     }
 
-    public List<StructureTemplate.StructureBlockInfo> getStructureBlocks(Level level) {
-        return getStructureBlocks(getStructure(level).structureTemplate(), structureBlockInfo -> true);
+    public List<StructureTemplate.StructureBlockInfo> getStructureBlocks(Level level, Direction direction) {
+        return getStructureBlocks(direction, getStructure(level).structureTemplate, structureBlockInfo -> true);
     }
 
-    private static List<StructureTemplate.StructureBlockInfo> getStructureBlocks(StructureTemplate structureTemplate, Predicate<StructureTemplate.StructureBlockInfo> condition) {
+    private static List<StructureTemplate.StructureBlockInfo> getStructureBlocks(Direction direction, StructureTemplate structureTemplate, Predicate<StructureTemplate.StructureBlockInfo> condition) {
         List<StructureTemplate.StructureBlockInfo> list = new ArrayList<>();
+        Rotation rotation = getRotation(direction);
 
         //access widener
         StructureTemplate.Palette palette = structureTemplate.palettes.get(0);
         for (var blockInfo : palette.blocks()) {
             if (condition.test(blockInfo)) {
-                list.add(blockInfo);
+                list.add(new StructureTemplate.StructureBlockInfo(blockInfo.pos, blockInfo.state.rotate(rotation), blockInfo.nbt));
             }
         }
         return list;
     }
 
-    private Rotation getRotation(Direction direction)
+    private static Rotation getRotation(Direction direction)
     {
         Direction direc = Direction.NORTH;
         if(direction == direc)
@@ -82,7 +84,7 @@ public class MultiBlockInfo {
     public boolean checkStructure(Level level, Direction direction, BlockPos pos)
     {
 
-        for (StructureTemplate.StructureBlockInfo structureBlockInfo : this.getStructureBlocks(level))
+        for (StructureTemplate.StructureBlockInfo structureBlockInfo : this.getStructureBlocks(level, direction))
         {
             BlockPos worldPos = this.getOffsetPos(level, structureBlockInfo.pos, direction).offset(pos);
             // pos is the base multiblock block (controller), we can safely assume it's the controller TE block
@@ -99,18 +101,12 @@ public class MultiBlockInfo {
 
     public StructureData getStructure(@Nullable Level level)
     {
-
         StructureData structureData = MULTIBLOCK_CACHE.get(resourceLocation);
         if(structureData == null && level instanceof ServerLevel serverLevel)
         {
             Optional<StructureTemplate> optional = serverLevel.getStructureManager().get(resourceLocation);
             StructureTemplate structureTemplate = optional.orElseThrow(() -> new NoSuchElementException("Template not found"));
-            var pivotList = getStructureBlocks(structureTemplate, structureBlockInfo -> structureBlockInfo.state.getBlock() instanceof ControllerBlock<?>);
-            if (pivotList.isEmpty())
-                throw new IllegalStateException("no pivot in structure, oh man...");
-            BlockPos pos = pivotList.get(0).pos;
-
-            structureData = new StructureData(this.resourceLocation, optional.get(), pos);
+            structureData = new StructureData(this.resourceLocation, structureTemplate);
             MULTIBLOCK_CACHE.put(resourceLocation, structureData);
         }
         return structureData;
@@ -120,11 +116,37 @@ public class MultiBlockInfo {
 
 
 
-    public record StructureData(ResourceLocation resourceLocation, StructureTemplate structureTemplate, BlockPos pivot){
+    public static class StructureData {
+
+
+        public final ResourceLocation resourceLocation;
+        private final StructureTemplate structureTemplate;
+
+        public final BlockPos pivot;
+
+        public final BlockState[][][] blockStates;
+        public StructureData(ResourceLocation resourceLocation, StructureTemplate structureTemplate)
+        {
+            this.resourceLocation = resourceLocation;
+            this.structureTemplate = structureTemplate;
+
+            blockStates = new BlockState[structureTemplate.getSize().getX()][structureTemplate.getSize().getY()][structureTemplate.getSize().getZ()];
+
+            var blockList = getStructureBlocks(Direction.NORTH, structureTemplate, structureBlockInfo -> true);
+
+            BlockPos foundPivot = null;
+            for (StructureTemplate.StructureBlockInfo structureBlock : blockList) {
+                blockStates[structureBlock.pos.getX()][structureBlock.pos.getY()][structureBlock.pos.getZ()] = structureBlock.state;
+                if(structureBlock.state.getBlock() instanceof ControllerBlock<?>)
+                    foundPivot = structureBlock.pos;
+            }
+            if (foundPivot == null)
+                throw new IllegalStateException("no pivot in structure, oh man...");
+            this.pivot = foundPivot;
+        }
 
         public CompoundTag writeToTag(CompoundTag tag){
             this.structureTemplate.save(tag);
-            tag.put("pivot",NbtUtils.writeBlockPos(pivot));
             tag.putString("resourceLocation", this.resourceLocation.toString());
             return tag;
         }
@@ -133,9 +155,8 @@ public class MultiBlockInfo {
         {
             StructureTemplate structureTemplate = new StructureTemplate();
             structureTemplate.load(tag);
-            BlockPos pivot = NbtUtils.readBlockPos(tag.getCompound("pivot"));
             ResourceLocation resourceLocation = new ResourceLocation(tag.getString("resourceLocation"));
-            return new StructureData(resourceLocation, structureTemplate, pivot);
+            return new StructureData(resourceLocation, structureTemplate);
         }
     }
 }

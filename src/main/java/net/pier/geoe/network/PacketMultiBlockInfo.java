@@ -34,7 +34,7 @@ public class PacketMultiBlockInfo implements IPacket{
         context.get().enqueueWork(() ->
         {
             this.multiBlockInfos.forEach(structureData -> {
-                MultiBlockInfo.MULTIBLOCK_CACHE.put(structureData.resourceLocation(), structureData);
+                MultiBlockInfo.MULTIBLOCK_CACHE.put(structureData.resourceLocation, structureData);
             });
         });
     }
