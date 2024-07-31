@@ -7,6 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import net.pier.geoe.loot.GeoeLootProvider;
+import net.pier.geoe.model.GeoeItemModelProvider;
 import net.pier.geoe.tag.GeoeBlockTags;
 import net.pier.geoe.tag.GeoeItemTags;
 
@@ -24,6 +25,7 @@ public class DataRegister {
             gen.addProvider(blockTags);
             gen.addProvider(new GeoeItemTags(gen, blockTags, exHelper));
             gen.addProvider(new GeoeLootProvider(gen));
+            gen.addProvider(new GeoeItemModelProvider(gen, exHelper));
         }
     }
 }
