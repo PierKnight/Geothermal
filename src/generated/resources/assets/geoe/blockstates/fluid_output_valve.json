@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "geoe:block/fluid_output_valve",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "geoe:block/fluid_output_valve",
+      "x": -90
+    },
+    "facing=north": {
+      "model": "geoe:block/fluid_output_valve"
+    },
+    "facing=south": {
+      "model": "geoe:block/fluid_output_valve",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "geoe:block/fluid_output_valve",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "geoe:block/fluid_output_valve",
+      "y": 90
+    }
+  }
+}

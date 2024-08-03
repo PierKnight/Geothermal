@@ -11,7 +11,7 @@ import net.minecraft.world.level.chunk.LightChunkGetter;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
+import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.NonnullDefault;
@@ -23,7 +23,7 @@ public class FakeWorld implements BlockAndTintGetter {
     private Level level;
 
     private Vec3i structureSize;
-    private MultiBlockInfo.StructureData structureData;
+    private TemplateMultiBlock.StructureData structureData;
 
     public FakeWorld()
     {
@@ -102,9 +102,9 @@ public class FakeWorld implements BlockAndTintGetter {
         return 0;
     }
 
-    public void updateWorld(Level level, MultiBlockInfo multiBlockInfo) {
+    public void updateWorld(Level level, TemplateMultiBlock templateMultiBlock) {
         this.level = level;
-        this.structureData = multiBlockInfo.getStructure(level);
-        this.structureSize = multiBlockInfo.getSize(level);
+        this.structureData = templateMultiBlock.getStructure(level);
+        this.structureSize = templateMultiBlock.getSize(level);
     }
 }

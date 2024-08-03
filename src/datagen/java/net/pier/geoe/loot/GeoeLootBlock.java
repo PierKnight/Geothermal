@@ -9,6 +9,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraftforge.common.data.LanguageProvider;
 import net.pier.geoe.register.GeoeBlocks;
 
 import java.util.function.BiConsumer;
@@ -27,6 +28,8 @@ public class GeoeLootBlock implements Consumer<BiConsumer<ResourceLocation, Loot
         this.dropItSelf(GeoeBlocks.PIPE.get());
         this.dropItSelf(GeoeBlocks.EXTRACTOR.get());
         this.dropItSelf(GeoeBlocks.GLASS.get());
+        this.dropItSelf(GeoeBlocks.FRAME.get());
+        GeoeBlocks.VALVES_BLOCK.values().forEach(blockRegistryObject -> this.dropItSelf(blockRegistryObject.get()));
     }
 
     private void dropItSelf(Block block)

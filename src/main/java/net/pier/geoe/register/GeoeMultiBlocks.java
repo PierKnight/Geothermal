@@ -1,38 +1,43 @@
 package net.pier.geoe.register;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
+import net.pier.geoe.blockentity.multiblock.DynamicMultiBlock;
+import net.pier.geoe.blockentity.multiblock.IMultiBlock;
+import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 
 public class GeoeMultiBlocks {
 
-    private static final Map<ResourceLocation, MultiBlockInfo> REGISTRY = new HashMap<>();
+    private static final Map<ResourceLocation, Supplier<? extends IMultiBlock>> REGISTRY = new HashMap<>();
 
-    public static final MultiBlockInfo EXTRACTOR = register("extractor");
+    public static final Supplier<TemplateMultiBlock> EXTRACTOR = register("extractor", () -> new TemplateMultiBlock("aboba"));
+    public static final Supplier<DynamicMultiBlock> TANK = register("tank", () -> new DynamicMultiBlock(new Vec3i(3,3,3), new BlockPos(5,10,5)));
 
 
-    public static MultiBlockInfo getMultiBlock(ResourceLocation resourceLocation)
+    public static Supplier<? extends IMultiBlock> getMultiBlock(ResourceLocation resourceLocation)
     {
-        MultiBlockInfo multiBlockInfo = REGISTRY.get(resourceLocation);
+        Supplier<? extends IMultiBlock> multiBlockInfo = REGISTRY.get(resourceLocation);
         if(multiBlockInfo == null)
             throw new NoSuchElementException("No MultiBlock found in registry");
         return multiBlockInfo;
     }
 
-    private static MultiBlockInfo register(String name)
+    private static <T extends IMultiBlock> Supplier<T> register(String name, Supplier<T> multiBlock)
     {
         ResourceLocation resourceLocation = new ResourceLocation(Geothermal.MODID, name);
-        MultiBlockInfo multiBlockInfo = new MultiBlockInfo(resourceLocation);
-        REGISTRY.put(resourceLocation, multiBlockInfo);
-        return multiBlockInfo;
+        REGISTRY.put(resourceLocation, multiBlock);
+        return multiBlock;
     }
 
-    public static Collection<MultiBlockInfo> getMultiblocks() {
+    public static Collection<Supplier<? extends IMultiBlock>> getMultiblocks() {
         return REGISTRY.values();
     }
 }

@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.pier.geoe.block.ControllerBlock;
-import net.pier.geoe.blockentity.multiblock.MultiBlockInfo;
-import net.pier.geoe.blockentity.multiblock.TemplateMultiBlockBlockEntity;
+import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
+import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 import net.pier.geoe.client.FakeWorld;
 import net.pier.geoe.client.RenderHelper;
 import net.pier.geoe.client.VertexWrapper;
@@ -29,7 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
 
 @ParametersAreNonnullByDefault
-public class TemplateMultiBlockRenderer<T extends TemplateMultiBlockBlockEntity> implements BlockEntityRenderer<T>
+public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<TemplateMultiBlock>> implements BlockEntityRenderer<T>
 {
 
     private static final VertexWrapper blockVertexWrapper = new VertexWrapper(null,0.33F);
@@ -54,36 +54,36 @@ public class TemplateMultiBlockRenderer<T extends TemplateMultiBlockBlockEntity>
         if(pBlockEntity.isComplete())
             return;
 
-        MultiBlockInfo multiBlockInfo = pBlockEntity.getMultiBlock();
+        TemplateMultiBlock templateMultiBlock = pBlockEntity.getMultiBlock();
         BlockState controllerState = level.getBlockState(pBlockEntity.getBlockPos());
 
-        if(multiBlockInfo != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
+        if(templateMultiBlock != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
 
-            Direction direction = controllerState.getValue(ControllerBlock.FACING);
-            fakeWorld.updateWorld(level, multiBlockInfo);
+                Direction direction = controllerState.getValue(ControllerBlock.FACING);
+                fakeWorld.updateWorld(level, templateMultiBlock);
 
-            for (StructureTemplate.StructureBlockInfo structureBlock : multiBlockInfo.getStructureBlocks(level, direction)) {
+                templateMultiBlock.forEachBlock(level, direction, structureBlock -> {
+                    BlockState state = structureBlock.state;
 
-                BlockState state = structureBlock.state;
+                    BlockPos offsetPos = templateMultiBlock.getOffsetPos(level, structureBlock.pos, direction);
+                    if (state.getRenderShape() == RenderShape.MODEL) {
 
-                BlockPos offsetPos = multiBlockInfo.getOffsetPos(level, structureBlock.pos, direction);
-                if (state.getRenderShape() == RenderShape.MODEL) {
-
-                    BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
-                    if(!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
-                        poseStack.pushPose();
-                        poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
-                        poseStack.scale(0.5F,0.5F,0.5F);
-                        poseStack.translate(0.5F,0.5F,0.5F);
-                        RenderType type = RenderHelper.depthTranslucent();
-                        BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
-                        BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
-                        blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
-                        blockRenderDispatcher.getModelRenderer().tesselateBlock(level,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
-                        poseStack.popPose();
+                        BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
+                        if(!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
+                            poseStack.pushPose();
+                            poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
+                            poseStack.scale(0.5F,0.5F,0.5F);
+                            poseStack.translate(0.5F,0.5F,0.5F);
+                            RenderType type = RenderHelper.depthTranslucent();
+                            BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
+                            BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
+                            blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
+                            blockRenderDispatcher.getModelRenderer().tesselateBlock(level,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
+                            poseStack.popPose();
+                        }
                     }
-                }
-
+                    return true;
+                });
             }
         }
 
@@ -248,8 +248,6 @@ public class TemplateMultiBlockRenderer<T extends TemplateMultiBlockBlockEntity>
 
          */
 
-
-    }
 
     public static void drawFace(Matrix4f matrix4f, VertexConsumer buffer, Matrix3f normal, int light, float minU, float maxU, float minV, float maxV, boolean inside, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4)
     {

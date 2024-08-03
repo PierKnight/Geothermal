@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "complete=false":  { "model": "geoe:block/frame" },
+    "complete=true":   { "model": "geoe:block/frame" }
+  }
+}

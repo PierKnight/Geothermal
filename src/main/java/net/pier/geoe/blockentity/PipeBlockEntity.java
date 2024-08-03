@@ -22,8 +22,6 @@ public class PipeBlockEntity extends BaseBlockEntity {
     int tankConnections = 0;
     private FluidStack fluidStack = FluidStack.EMPTY;
 
-    private boolean shouldSync = false;
-
     public PipeBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
         super(GeoeBlocks.PIPE_BE.get(), pPos, pBlockState);

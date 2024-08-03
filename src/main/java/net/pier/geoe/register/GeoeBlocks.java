@@ -1,13 +1,21 @@
 package net.pier.geoe.register;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StructureBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.StructureBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
@@ -15,12 +23,13 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.block.ExtractorBlock;
-import net.pier.geoe.block.GeothermalPipeBlock;
-import net.pier.geoe.block.GlassBlock;
+import net.pier.geoe.block.*;
 import net.pier.geoe.blockentity.ExtractorBlockEntity;
 import net.pier.geoe.blockentity.PipeBlockEntity;
+import net.pier.geoe.blockentity.valve.ValveBlockEntity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class GeoeBlocks
@@ -30,12 +39,28 @@ public class GeoeBlocks
     public static final RegistryObject<Block> EXTRACTOR = registerBlock("extractor", () -> new ExtractorBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
     public static final RegistryObject<Block> PIPE = registerBlock("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)), true);
     public static final RegistryObject<Block> GLASS = registerBlock("glass", () -> new GlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(GeoeBlocks::never).isRedstoneConductor(GeoeBlocks::never).isSuffocating(GeoeBlocks::never).isViewBlocking(GeoeBlocks::never)), true);
+    public static final RegistryObject<Block> FRAME = registerBlock("frame", () -> new BlockMachineFrame(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL)), true);
 
     public static final DeferredRegister<BlockEntityType<?>> BE_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Geothermal.MODID);
     public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
+
     public static final RegistryObject<BlockEntityType<ExtractorBlockEntity>> EXTRACTOR_BE = BE_REGISTER.register("extractor_type", () -> BlockEntityType.Builder.of(ExtractorBlockEntity::new,EXTRACTOR.get()).build(null));
 
 
+    public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<Block>> VALVES_BLOCK = HashBasedTable.create();
+    public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<BlockEntityType<BlockEntity>>> VALVES_TYPE = HashBasedTable.create();
+
+    static {
+        //VALVE_REGISTRATION
+        for (ValveBlockEntity.Type type : ValveBlockEntity.Type.values()) {
+            for (ValveBlockEntity.Flow flow : ValveBlockEntity.Flow.values()) {
+                RegistryObject<Block> valveBlock = registerBlock( type.name + "_" + flow.name + "_valve", () -> new ValveBlock(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL), type, flow), true);
+                var valveType = BE_REGISTER.register(type.name + "_" + flow.name + "_valve_type", () -> BlockEntityType.Builder.of((BlockEntityType.BlockEntitySupplier<BlockEntity>) (pPos, pState) -> new ValveBlockEntity(pPos, pState, type, flow), valveBlock.get()).build(null));
+                VALVES_BLOCK.put(type, flow, valveBlock);
+                VALVES_TYPE.put(type, flow, valveType);
+            }
+        }
+    }
 
 
     private static RegistryObject<Block> registerBlock(String name, Supplier<Block> supplier, boolean item)
@@ -45,6 +70,13 @@ public class GeoeBlocks
             GeoeItems.REGISTER.register(name, () -> new BlockItem(object.get(),new Item.Properties().tab(Geothermal.CREATIVE_TAB)));
         return object;
     }
+
+    private static RegistryObject<Block> registerValve(ValveBlockEntity.Type type, ValveBlockEntity.Flow flow)
+    {
+        return registerBlock("valve_" + type.name() + "_" + flow.name(),() -> new ValveBlock(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL), type, flow), true);
+    }
+
+
 
     private static Boolean never(BlockState p_50779_, BlockGetter p_50780_, BlockPos p_50781_, EntityType<?> p_50782_) {
         return false;

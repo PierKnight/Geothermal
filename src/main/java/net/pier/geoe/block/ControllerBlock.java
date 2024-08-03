@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+
 @ParametersAreNonnullByDefault
 public abstract class ControllerBlock<T extends MultiBlockControllerEntity> extends Block implements EntityBlock {
 
@@ -24,8 +25,7 @@ public abstract class ControllerBlock<T extends MultiBlockControllerEntity> exte
 
     public ControllerBlock(Properties pProperties) {
         super(pProperties);
-
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(BlockMachineFrame.COMPLETE, false));
     }
 
 
@@ -57,6 +57,7 @@ public abstract class ControllerBlock<T extends MultiBlockControllerEntity> exte
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
         pBuilder.add(FACING);
+        pBuilder.add(BlockMachineFrame.COMPLETE);
     }
 
     @Override

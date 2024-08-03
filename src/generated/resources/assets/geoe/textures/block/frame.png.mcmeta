@@ -1,0 +1,68 @@
+{
+  "ctm": {
+    "ctm_version": 1,
+    "type": "ctm",
+    "layer": "CUTOUT",
+    "textures": [
+      "geoe:block/frame_ctm"
+    ],
+    "extra": {
+      "connect_to": [
+        {
+          "block": "geoe:extractor",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
+          "block": "geoe:frame",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
+          "block": "geoe:fluid_input_valve",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
+          "block": "geoe:fluid_output_valve",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
+          "block": "geoe:energy_input_valve",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
+          "block": "geoe:energy_output_valve",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

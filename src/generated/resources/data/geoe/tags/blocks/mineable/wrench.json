@@ -2,6 +2,12 @@
   "replace": false,
   "values": [
     "geoe:geothermal_pipe",
-    "geoe:extractor"
+    "geoe:extractor",
+    "geoe:glass",
+    "geoe:frame",
+    "geoe:fluid_input_valve",
+    "geoe:fluid_output_valve",
+    "geoe:energy_input_valve",
+    "geoe:energy_output_valve"
   ]
 }

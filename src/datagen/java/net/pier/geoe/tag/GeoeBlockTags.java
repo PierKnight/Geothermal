@@ -2,7 +2,11 @@ package net.pier.geoe.tag;
 
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.common.data.LanguageProvider;
+import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeTags;
@@ -12,16 +16,24 @@ public class GeoeBlockTags extends BlockTagsProvider {
 
     public GeoeBlockTags(DataGenerator pGenerator, @Nullable ExistingFileHelper existingFileHelper) {
         super(pGenerator, Geothermal.MODID, existingFileHelper);
+
+
     }
 
     @Override
     protected void addTags() {
 
 
-        tag(GeoeTags.Blocks.WRENCH_BREAKABLE)
+        TagsProvider.TagAppender<Block> tagAppender = tag(GeoeTags.Blocks.WRENCH_BREAKABLE)
                 .add(GeoeBlocks.PIPE.get())
                 .add(GeoeBlocks.EXTRACTOR.get())
-                .add(GeoeBlocks.GLASS.get());
+                .add(GeoeBlocks.GLASS.get())
+                .add(GeoeBlocks.FRAME.get());
+
+        for (RegistryObject<Block> blockRegistryObject : GeoeBlocks.VALVES_BLOCK.values())
+           tagAppender.add(blockRegistryObject.get());
+
+
 
     }
 }

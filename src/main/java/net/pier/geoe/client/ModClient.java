@@ -23,6 +23,7 @@ public class ModClient
     @SubscribeEvent
     public static void init(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(GeoeBlocks.GLASS.get(), RenderType.cutout());
+        GeoeBlocks.VALVES_BLOCK.values().forEach(blockRegistryObject -> ItemBlockRenderTypes.setRenderLayer(blockRegistryObject.get(), RenderType.cutout()));
     }
 
 

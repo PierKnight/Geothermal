@@ -1,6 +1,7 @@
 package net.pier.geoe.block;
 
 import net.minecraft.util.StringRepresentable;
+import org.jetbrains.annotations.NotNull;
 
 public enum EnumPipeConnection implements StringRepresentable
 {
@@ -14,7 +15,7 @@ public enum EnumPipeConnection implements StringRepresentable
 
     private final String name;
 
-    private EnumPipeConnection(String name)
+    EnumPipeConnection(String name)
     {
         this.name = name;
     }
@@ -40,6 +41,7 @@ public enum EnumPipeConnection implements StringRepresentable
     }
 
     @Override
+    @NotNull
     public String getSerializedName()
     {
         return this.name;
