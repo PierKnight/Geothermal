@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.pier.geoe.block.ControllerBlock;
+import net.pier.geoe.blockentity.multiblock.IMultiBlock;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 import net.pier.geoe.client.FakeWorld;
@@ -43,6 +44,11 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
         this.context = context;
     }
 
+    public void renderMultiBlock(Level level, T blockEntity, IMultiBlock iMultiBlock)
+    {
+
+    }
+
     @Override
     public void render(T pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
     {
@@ -58,6 +64,9 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
         BlockState controllerState = level.getBlockState(pBlockEntity.getBlockPos());
 
         if(templateMultiBlock != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
+
+                if(pBlockEntity.isComplete())
+                    this.renderMultiBlock(level, pBlockEntity, templateMultiBlock);
 
                 Direction direction = controllerState.getValue(ControllerBlock.FACING);
                 fakeWorld.updateWorld(level, templateMultiBlock);
@@ -78,7 +87,7 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
                             BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
                             BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
                             blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
-                            blockRenderDispatcher.getModelRenderer().tesselateBlock(level,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
+                            blockRenderDispatcher.getModelRenderer().tesselateBlock(fakeWorld,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
                             poseStack.popPose();
                         }
                     }

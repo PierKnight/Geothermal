@@ -1,6 +1,7 @@
 package net.pier.geoe.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -24,7 +25,7 @@ public class WrenchItem extends Item {
         Level level = pContext.getLevel();
         BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
-        if(player != null && player.isCrouching() && blockstate.is(GeoeTags.Blocks.WRENCH_BREAKABLE))
+        if(player instanceof ServerPlayer && player.isCrouching() && blockstate.is(GeoeTags.Blocks.WRENCH_BREAKABLE))
         {
             level.destroyBlock(blockpos, true);
             return InteractionResult.SUCCESS;

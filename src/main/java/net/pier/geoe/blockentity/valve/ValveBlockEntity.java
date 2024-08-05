@@ -1,6 +1,5 @@
 package net.pier.geoe.blockentity.valve;
 
-import com.mojang.datafixers.types.Func;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -18,8 +17,6 @@ import net.pier.geoe.register.GeoeBlocks;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class ValveBlockEntity extends BaseBlockEntity
 {
@@ -56,22 +53,31 @@ public class ValveBlockEntity extends BaseBlockEntity
         tag.putInt("index", this.index);
     }
 
-    public void updateController(BlockPos controllerPos, int index) {
+    public void updateController(@Nullable BlockPos controllerPos, int index) {
 
         this.controllerPos = controllerPos;
         this.index = index;
 
-        //IInputHandler e = (IInputHandler) this.type.inputs.apply(getController())[index].cast();
+        if(controllerPos == null)
+            return;
 
-        //if(e.isInput() != (flow == Flow.INPUT))
-        //    throw new IllegalStateException("INVALID HANDLER FOR THIS VALVE");
+        var controller = getController();
+        if(controller == null)
+            throw new IllegalStateException(String.format("Invalid Controller Position %s in valve at %s", controllerPos, getBlockPos()));
+
+        var handlerLazyOptional = controller.getHandlers()[this.index];
+        if(handlerLazyOptional.resolve().isPresent()) {
+            Flow handlerFlow = handlerLazyOptional.resolve().get().getFlow();
+            if(handlerFlow != this.flow)
+                throw new IllegalStateException(String.format("Used %s Handler for valve of type %s", handlerFlow, this.flow));
+        }
         
     }
 
     @Nullable
     private MultiBlockControllerEntity<?> getController()
     {
-        if(level != null && level.getBlockEntity(this.getBlockPos()) instanceof MultiBlockControllerEntity<?> controller)
+        if(level != null && this.controllerPos != null && level.getBlockEntity(this.controllerPos) instanceof MultiBlockControllerEntity<?> controller)
             return controller;
         return null;
     }
@@ -84,20 +90,22 @@ public class ValveBlockEntity extends BaseBlockEntity
         if(controller == null)
             return super.getCapability(capability, facing);
 
-        //if(this.type.capability == capability && facing == this.direction.getOpposite())
-        //    return this.flow == Flow.INPUT ? this.type.inputs.apply(controller)[index].cast() : this.type.outputs.apply(controller)[index].cast();
+        if(this.type.capability == capability && facing == this.direction)
+            return controller.getHandlers()[this.index].cast();
+
         return super.getCapability(capability, facing);
     }
 
     public enum Type {
-        FLUID("fluid"),
-        ENERGY("energy");
-
+        FLUID("fluid", CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY),
+        ENERGY("energy", CapabilityEnergy.ENERGY);
 
 
         public final String name;
-        Type(String name) {
+        private final Capability<?> capability;
+        Type(String name, Capability<?> capability) {
             this.name = name;
+            this.capability = capability;
         }
     }
 

@@ -2,22 +2,23 @@ package net.pier.geoe.blockentity.valve;
 
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import org.jetbrains.annotations.NotNull;
 
-public class ValveFluidHandler implements IFluidHandler,IInputHandler {
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-    private IFluidHandler fluidHandler;
+public class ValveFluidHandler implements IFluidHandler, IValveHandler {
 
-    private final boolean input;
+    private final IFluidHandler fluidHandler;
 
-    public ValveFluidHandler(boolean input) {
-        this.input = input;
-    }
+    private final ValveBlockEntity.Flow flow;
 
-    public void setFluidHandler(IFluidHandler fluidHandler) {
+
+    public ValveFluidHandler(IFluidHandler fluidHandler, ValveBlockEntity.Flow flow) {
+        this.flow = flow;
         this.fluidHandler = fluidHandler;
     }
+
 
     @Override
     public int getTanks() {
@@ -42,23 +43,24 @@ public class ValveFluidHandler implements IFluidHandler,IInputHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        return this.input ? this.fluidHandler.fill(resource, action) : 0;
+        return this.flow == ValveBlockEntity.Flow.INPUT ? this.fluidHandler.fill(resource, action) : 0;
     }
 
     @NotNull
     @Override
     public FluidStack drain(FluidStack resource, FluidAction action) {
-        return !this.input ? this.fluidHandler.drain(resource, action) : FluidStack.EMPTY;
+        return this.flow == ValveBlockEntity.Flow.OUTPUT ? this.fluidHandler.drain(resource, action) : FluidStack.EMPTY;
     }
 
     @NotNull
     @Override
     public FluidStack drain(int maxDrain, FluidAction action) {
-        return !this.input ? this.fluidHandler.drain(maxDrain, action) : FluidStack.EMPTY;
+        return this.flow == ValveBlockEntity.Flow.OUTPUT ? this.fluidHandler.drain(maxDrain, action) : FluidStack.EMPTY;
     }
 
+
     @Override
-    public boolean isInput() {
-        return this.input;
+    public ValveBlockEntity.Flow getFlow() {
+        return this.flow;
     }
 }

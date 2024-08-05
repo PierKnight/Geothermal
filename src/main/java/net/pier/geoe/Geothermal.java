@@ -3,11 +3,13 @@ package net.pier.geoe;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -66,7 +68,6 @@ public class Geothermal
     public Geothermal()
     {
 
-
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::setup);
         eventBus.addListener(this::enqueueIMC);
@@ -85,6 +86,7 @@ public class Geothermal
         GeoeItems.REGISTER.register(eventBus);
         GeoeParticleTypes.PARTICLE_TYPES.register(eventBus);
         GeoeSounds.REGISTER.register(eventBus);
+        GeoeMenuTypes.MENU_TYPES.register(eventBus);
 
 
     }

@@ -87,9 +87,10 @@ public class TemplateMultiBlock implements IMultiBlock{
         this.forEachBlock(level, direction, structureBlockInfo -> {
             BlockPos worldPos = this.getOffsetPos(level, structureBlockInfo.pos, direction).offset(pos);
             BlockState state = level.getBlockState(worldPos);
-            state.getOptionalValue(BlockMachineFrame.COMPLETE).ifPresent((c) -> {
-                level.setBlock(worldPos, state.setValue(BlockMachineFrame.COMPLETE, complete), 3);
-            });
+            state.getOptionalValue(BlockMachineFrame.COMPLETE).ifPresent((c) -> level.setBlock(worldPos, state.setValue(BlockMachineFrame.COMPLETE, complete), 3));
+
+            if(state.getBlock() instanceof ValveBlock && level.getBlockEntity(worldPos) instanceof ValveBlockEntity valve)
+                valve.updateController(complete ? pos : null, structureBlockInfo.nbt.getInt("index"));
             return true;
         });
     }
@@ -134,7 +135,7 @@ public class TemplateMultiBlock implements IMultiBlock{
             for (var blockInfo : blocks) {
                 BlockState blockState = blockInfo.state;
                 if(blockState.is(Blocks.STRUCTURE_BLOCK) && blockInfo.nbt != null && blockInfo.nbt.contains("metadata"))
-                    blockState = getValveFromString(blockInfo.nbt.getString("metadata"));
+                    blockState = getValveFromString(blockInfo.nbt.getString("metadata"), blockInfo.nbt);
                 this.structureBlockInfos.add(new StructureTemplate.StructureBlockInfo(blockInfo.pos, blockState, blockInfo.nbt));
                 this.blockStates[blockInfo.pos.getX()][blockInfo.pos.getY()][blockInfo.pos.getZ()] = blockState;
                 if(blockState.getBlock() instanceof ControllerBlock<?>)
@@ -147,14 +148,15 @@ public class TemplateMultiBlock implements IMultiBlock{
         }
 
 
-        private BlockState getValveFromString(String string)
+        private BlockState getValveFromString(String string, CompoundTag tag)
         {
             String[] data = string.split(",");
-            if(data.length != 3)
+            if(data.length != 4)
                 throw new IllegalArgumentException("Structure Valve Block has not three properties");
             ValveBlockEntity.Type type = ValveBlockEntity.Type.valueOf(data[0]);
             ValveBlockEntity.Flow flow = ValveBlockEntity.Flow.valueOf(data[1]);
             Direction valveDirection = Objects.requireNonNull(Direction.byName(data[2]),"Incorrect Direction Enum");
+            tag.putInt("index", Integer.parseInt(data[3]));
             return Objects.requireNonNull(GeoeBlocks.VALVES_BLOCK.get(type, flow)).get().defaultBlockState().setValue(ValveBlock.FACING, valveDirection);
         }
 

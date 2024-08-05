@@ -6,6 +6,9 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -25,6 +28,10 @@ public abstract class BaseBlockEntity extends BlockEntity
 
     public abstract void readTag(CompoundTag tag);
     public abstract void writeTag(CompoundTag tag);
+
+    public void tick(Level level, BlockPos pos){
+
+    }
 
 
     @Override
@@ -71,9 +78,10 @@ public abstract class BaseBlockEntity extends BlockEntity
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
+
     public void syncInfo()
     {
-        if(level != null)
+        if(level instanceof ServerLevel)
             level.sendBlockUpdated(this.getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 }

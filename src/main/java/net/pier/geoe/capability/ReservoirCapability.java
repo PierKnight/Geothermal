@@ -54,8 +54,7 @@ public class ReservoirCapability implements INBTSerializable<Tag>
 
 
             NormalNoise normalNoise = NormalNoise.create(worldgenrandom,new NormalNoise.NoiseParameters(-7,1.0));
-
-
+            
             normalNoise.getValue(chunkPos.x,0,chunkPos.z);
             int capacity = 10000 + worldgenrandom.nextInt(10000);
             int temperature = 1 + worldgenrandom.nextInt(4);

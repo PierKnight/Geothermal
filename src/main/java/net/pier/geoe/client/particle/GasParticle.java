@@ -35,7 +35,7 @@ public class GasParticle extends TextureSheetParticle {
         this.bCol = b * f1;
         this.quadSize *= 1.875F;
         this.lifetime = (int)Math.max(5.0F + Math.random() * 15.0F, 1.0F);
-        this.hasPhysics = false;
+        this.hasPhysics = true;
         this.setSpriteFromAge(sprites);
     }
 

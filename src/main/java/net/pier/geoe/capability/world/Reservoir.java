@@ -130,8 +130,6 @@ public class Reservoir implements IFluidTank {
 
 
 
-    private static final TagKey<Fluid> STEAM_TAG = FluidTags.create(new ResourceLocation("forge", "steam"));
-    private static final TagKey<Fluid> GEOTHERMAL_TAG = FluidTags.create(new ResourceLocation("forge", "geothermal_fluid"));
     public enum Type{
         STEAM(100, 100,Fluids.WATER),
         GEOTHERMAL( 100, 100,Fluids.WATER);

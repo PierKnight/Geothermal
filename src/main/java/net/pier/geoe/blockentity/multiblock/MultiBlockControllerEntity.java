@@ -4,24 +4,28 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.network.NetworkHooks;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.BaseBlockEntity;
-import net.pier.geoe.blockentity.valve.IInputHandler;
-import net.pier.geoe.blockentity.valve.ValveEnergyHandler;
-import net.pier.geoe.blockentity.valve.ValveFluidHandler;
+import net.pier.geoe.blockentity.valve.IValveHandler;
+import net.pier.geoe.gui.GeoeContainerMenu;
+import net.pier.geoe.gui.MenuContext;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends BaseBlockEntity
 {
@@ -31,9 +35,6 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
     private final T multiBlock;
 
     protected final Direction direction;
-
-
-
 
     public MultiBlockControllerEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, T multiBlock)
     {
@@ -49,7 +50,7 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
     }
 
 
-    public abstract LazyOptional<IInputHandler>[] getHandlers();
+    public abstract LazyOptional<IValveHandler>[] getHandlers();
 
 
     public boolean isComplete() {
@@ -71,22 +72,40 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
         }
     }
 
-    public static void tick(Level level, BlockPos blockPos, BlockState blockState, MultiBlockControllerEntity<?> be) {
+    public InteractionResult use(ServerPlayer serverPlayer)
+    {
+        if(!this.isComplete)
+            return InteractionResult.FAIL;
+        NetworkHooks.openGui(serverPlayer, new SimpleMenuProvider(new MenuConstructor() {
+            @Nullable
+            @Override
+            public AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
+                return MultiBlockControllerEntity.this.getMenu(new MenuContext<BlockEntity>(pContainerId, pPlayerInventory, MultiBlockControllerEntity.this));
+            }
+        }, Component.nullToEmpty("block." + this.getType().getRegistryName())), getBlockPos());
+        return InteractionResult.SUCCESS;
+    }
 
+    @Override
+    public void tick(Level level, BlockPos blockPos) {
         if(level.getGameTime() % 10 == 0)
         {
-            if(be.getMultiBlock().checkStructure(level, blockPos, be.getDirection())) {
-                if (!be.isComplete) {
-                    be.getMultiBlock().assemble(level, blockPos, be.getDirection());
-                    be.setComplete(true);
+            if(getMultiBlock().checkStructure(level, blockPos, getDirection())) {
+                if (!isComplete) {
+                    getMultiBlock().assemble(level, blockPos, getDirection());
+                    setComplete(true);
                 }
             }
-            else if(be.isComplete) {
-                be.setComplete(false);
-                be.getMultiBlock().disassemble(level, blockPos, be.getDirection());
+            else if(isComplete) {
+                setComplete(false);
+                getMultiBlock().disassemble(level, blockPos, getDirection());
             }
-
         }
+
+    }
+
+    public static void tick(Level level, BlockPos blockPos, BlockState blockState, MultiBlockControllerEntity<?> be) {
+        be.tick(level, blockPos);
     }
 
 
@@ -123,6 +142,8 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
         BlockPos max = getMultiBlock().getOffsetPos(level, new BlockPos(size),direction);
         return new AABB(min,max).move(this.getBlockPos());
     }
+
+    public abstract GeoeContainerMenu<?> getMenu(MenuContext<?> menuContext);
 
 
 }
