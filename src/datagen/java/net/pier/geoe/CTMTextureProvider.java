@@ -9,13 +9,11 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.pier.geoe.block.BlockMachineFrame;
 import net.pier.geoe.register.GeoeBlocks;
 import org.apache.commons.lang3.text.translate.JavaUnicodeEscaper;
 import org.jetbrains.annotations.NotNull;
-import oshi.util.tuples.Pair;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

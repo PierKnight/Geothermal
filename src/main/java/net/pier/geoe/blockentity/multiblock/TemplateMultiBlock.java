@@ -1,11 +1,9 @@
 package net.pier.geoe.blockentity.multiblock;
 
-import com.mojang.datafixers.types.Func;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +11,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraftforge.registries.GameData;
 import net.pier.geoe.Geothermal;
@@ -23,13 +20,9 @@ import net.pier.geoe.block.ValveBlock;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
 import net.pier.geoe.register.GeoeBlocks;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.BufferUtils;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class TemplateMultiBlock implements IMultiBlock{
 

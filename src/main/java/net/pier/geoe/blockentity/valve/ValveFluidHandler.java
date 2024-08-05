@@ -4,9 +4,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class ValveFluidHandler implements IFluidHandler, IValveHandler {
 
     private final IFluidHandler fluidHandler;
