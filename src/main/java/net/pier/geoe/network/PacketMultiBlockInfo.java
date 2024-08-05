@@ -1,6 +1,5 @@
 package net.pier.geoe.network;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;

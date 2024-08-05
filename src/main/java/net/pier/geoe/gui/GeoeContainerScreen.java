@@ -1,13 +1,9 @@
 package net.pier.geoe.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.pier.geoe.gui.info.FluidInfoArea;
 import net.pier.geoe.gui.info.InfoArea;
 
 import javax.annotation.Nonnull;

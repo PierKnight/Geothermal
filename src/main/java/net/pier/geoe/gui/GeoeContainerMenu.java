@@ -14,7 +14,6 @@ import net.pier.geoe.gui.data.GenericProperty;
 import net.pier.geoe.network.PacketContainerSync;
 import net.pier.geoe.network.PacketManager;
 
-
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.List;
