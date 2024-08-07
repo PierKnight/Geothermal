@@ -12,9 +12,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.particle.TerrainParticle;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraftforge.fluids.FluidStack;
@@ -102,26 +104,6 @@ public class GuiHelper
         }
     }
 
-    public static void drawSlot(int x, int y, int w, int h, PoseStack transform)
-    {
-        drawSlot(x, y, w, h, 0xff, transform);
-    }
 
-    public static void drawSlot(PoseStack transform, int x, int y, int w, int h, int dark, int main, int light)
-    {
-        final int minX = x+8-w/2;
-        final int minY = y+8-h/2;
-        final int maxX = minX+w;
-        final int maxY = minY+h;
-        GuiComponent.fill(transform, minX, minY-1, maxX, minY, dark);
-        GuiComponent.fill(transform, minX-1, minY-1, minX, maxY, dark);
-        GuiComponent.fill(transform, minX, minY, maxX, maxY, main);
-        GuiComponent.fill(transform, minX, maxY, maxX+1, maxY+1, light);
-        GuiComponent.fill(transform, maxX, minY, maxX+1, maxY, light);
-    }
 
-    public static void drawSlot(int x, int y, int w, int h, int alpha, PoseStack transform)
-    {
-        drawSlot(transform, x, y, w, h, (alpha<<24)|0x373737, (alpha<<24)|0x8b8b8b, (alpha<<24)|0xffffff);
-    }
 }

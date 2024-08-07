@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class InfoArea {
 
-    private final Rect2i area;
+    protected final Rect2i area;
 
     protected InfoArea(Rect2i area) {
         this.area = area;
