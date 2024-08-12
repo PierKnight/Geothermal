@@ -13,11 +13,11 @@ import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 import net.pier.geoe.blockentity.valve.IValveHandler;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
 import net.pier.geoe.blockentity.valve.ValveFluidHandler;
-import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.capability.reservoir.Reservoir;
-import net.pier.geoe.gui.WellMenu;
+import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.gui.GeoeContainerMenu;
 import net.pier.geoe.gui.MenuContext;
+import net.pier.geoe.gui.WellMenu;
 import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeMultiBlocks;
 

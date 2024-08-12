@@ -7,9 +7,9 @@ import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.gui.WellMenu;
 import net.pier.geoe.gui.GeoeContainerMenu;
 import net.pier.geoe.gui.MenuContext;
+import net.pier.geoe.gui.WellMenu;
 
 import java.util.Objects;
 import java.util.function.Function;

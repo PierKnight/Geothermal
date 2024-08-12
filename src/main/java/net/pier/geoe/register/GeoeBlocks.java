@@ -19,8 +19,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.*;
-import net.pier.geoe.blockentity.WellBlockEntity;
 import net.pier.geoe.blockentity.PipeBlockEntity;
+import net.pier.geoe.blockentity.WellBlockEntity;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
 
 import java.util.function.Supplier;

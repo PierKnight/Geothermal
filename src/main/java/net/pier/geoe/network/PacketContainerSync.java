@@ -6,7 +6,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
 import net.pier.geoe.gui.GeoeContainerMenu;
-import net.pier.geoe.gui.GeoeContainerScreen;
 import net.pier.geoe.gui.data.DataContainerType;
 
 import java.util.List;

@@ -1,11 +1,9 @@
 package net.pier.geoe.blockentity.valve;
 
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

@@ -15,8 +15,8 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.material.Fluids;
-import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.capability.reservoir.Reservoir;
+import net.pier.geoe.capability.reservoir.ReservoirCapability;
 
 import java.util.HashSet;
 import java.util.Random;
