@@ -3,49 +3,57 @@ package net.pier.geoe.gui.info;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.levelgen.RandomSource;
-import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
-import net.pier.geoe.capability.world.Reservoir;
+import net.pier.geoe.capability.reservoir.Reservoir;
 import net.pier.geoe.client.RenderHelper;
+import net.pier.geoe.util.TextUtils;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+import java.util.function.Supplier;
 
-import static net.pier.geoe.client.GuiHelper.*;
+import static net.pier.geoe.client.GuiHelper.drawTexturedColoredRect;
+import static net.pier.geoe.client.GuiHelper.getSprite;
 
 public class ReservoirInfoArea extends InfoArea{
 
-    private final Reservoir reservoir;
+    private final Supplier<Reservoir> reservoir;
     private final NormalNoise noise;
 
-    private final float a,b, noiseScale, rotation;
+    private final int tileSize = 5;
+    private final float a;
+    private final float b;
+    private final float noiseScale;
+    private final boolean[][] isCave;
 
-    public ReservoirInfoArea(Rect2i area, Reservoir reservoir, long seed) {
+    private int holeSurface = 0;
+
+    public ReservoirInfoArea(Rect2i area, Supplier<Reservoir> reservoir, long seed) {
         super(area);
         this.reservoir = reservoir;
         RandomSource randomSource = new XoroshiroRandomSource(seed);
-
-        float size = area.getWidth() * 0.5F;
-        float ellipseArea = size * size;
         this.noise = NormalNoise.create(randomSource,new NormalNoise.NoiseParameters(-1,1.0));
         this.a = area.getWidth() * 0.5F;
-        this.b = ellipseArea / (this.a);
-        this.noiseScale = 0.8F;
-        this.rotation = 0;
+        this.b = area.getWidth() * 0.5F;
+        this.noiseScale = 0.5F;
+
+        this.isCave = new boolean[area.getWidth()][area.getHeight()];
+
+        for(int ww = 0;ww < this.area.getWidth();ww++)
+            for (int hh = 0; hh < this.area.getHeight(); hh++) {
+                this.isCave[ww][hh] = this.isInside(ww - (int) (this.area.getWidth() * 0.5), hh - (int) (this.area.getHeight() * 0.5));
+                if(this.isCave[ww][hh]) holeSurface += 1;
+            }
     }
 
     private double getPerturbedRadius(double theta) {
@@ -55,10 +63,7 @@ public class ReservoirInfoArea extends InfoArea{
     }
 
     // Function to check if point (x, y) is inside the perturbed ellipse
-    public boolean isInside(double x, double y) {
-
-
-
+    private boolean isInside(double x, double y) {
         double r = Math.sqrt(x * x + y * y);
         double theta = Math.atan2(y, x);
         double rPerturbed = getPerturbedRadius(theta);
@@ -66,7 +71,22 @@ public class ReservoirInfoArea extends InfoArea{
     }
 
     @Override
-    public void draw(PoseStack transform) {
+    public void draw(PoseStack transform, List<Component> tooltip, int mouseX, int mouseY) {
+
+        Reservoir reservoir = this.reservoir.get();
+
+        if(reservoir == null)
+            return;
+
+        FluidStack[] fluids = new FluidStack[]{reservoir.getFluid(),reservoir.getInput()};
+        Float[] fluidTotalArea = Arrays.stream(fluids).map(fluidStack -> {
+            float r = (float) fluidStack.getAmount() / reservoir.getCapacity();
+            return this.holeSurface * r;
+        }).toArray(Float[]::new);
+        int areaX = this.area.getX();
+        int areaY = this.area.getY();
+
+        TextureAtlasSprite stoneSprite = getSprite(new ResourceLocation("minecraft","block/stone"));
 
         transform.pushPose();
         MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
@@ -74,105 +94,64 @@ public class ReservoirInfoArea extends InfoArea{
         RenderType renderType = RenderHelper.getGuiTranslucent(InventoryMenu.BLOCK_ATLAS);
         VertexConsumer builder = buffer.getBuffer(renderType);
 
-        TextureAtlasSprite fluidSprite = getSprite(Fluids.WATER.getAttributes().getStillTexture());
-        TextureAtlasSprite lavaSprite = getSprite(Fluids.LAVA.getAttributes().getStillTexture());
-        TextureAtlasSprite stoneSprite = getSprite(new ResourceLocation("minecraft","block/stone"));
-        int col = Fluids.WATER.getAttributes().getColor(new FluidStack(Fluids.WATER,1));
-        int areaX = this.area.getX();
-        int areaY = this.area.getY();
-        int tileSize = 5;
-        int minY = Integer.MAX_VALUE;
-        int maxY = 0;
+        float[] fluidHoleAMount = new float[fluidTotalArea.length];
+        int currentFluid = 0;
 
-        for(int ww = 0;ww < this.area.getWidth();ww++)
+
+        for(int hh = this.area.getHeight() - 1;hh >= 0;hh--)
         {
-            for(int hh = 0;hh < this.area.getHeight();hh++)
+            float totalCaveHoles = 0;
+            Arrays.fill(fluidHoleAMount, 0);
+
+            for(int ww = 0;ww < this.area.getWidth() && currentFluid < fluidTotalArea.length;ww++)
             {
-
-
-                int x = ww - (int)(this.area.getWidth() * 0.5);
-                int y = hh - (int)(this.area.getHeight() * 0.5);
-
-                boolean isCave = isInside(x, y);
-
-                if(isCave) {
-                    drawTexturedColoredRect(builder, transform, areaX+ww*tileSize, areaY+hh*tileSize, tileSize, tileSize,
-                            0.4F,0.4F,0.4F,
-                            1, stoneSprite.getU0(), stoneSprite.getU1(), stoneSprite.getV0(), stoneSprite.getV1());
-                    minY = Math.min(minY, hh);
-                    maxY = Math.max(maxY, hh);
-                }
-                else
+                if(this.isCave[ww][hh])
                 {
-                    drawTexturedColoredRect(builder, transform, areaX+ww*tileSize, areaY+hh*tileSize, tileSize, tileSize,
-                            0.7F,0.7F,0.7F,
-                            1, stoneSprite.getU0(), stoneSprite.getU1(), stoneSprite.getV0(), stoneSprite.getV1());
+                    float fluidAmount = Math.min(fluidTotalArea[currentFluid], 1.0F);
+                    fluidHoleAMount[currentFluid] += fluidAmount;
+                    totalCaveHoles += fluidAmount;
+                    fluidTotalArea[currentFluid] = Math.max(fluidTotalArea[currentFluid] - 1.0F, 0.0F);
+                    if(fluidTotalArea[currentFluid] == 0.0F)
+                        currentFluid++;
+                }
+            }
+            for(int ww = 0;ww < this.area.getWidth();ww++)
+            {
+                boolean isTunnel = ww == (int)(this.area.getWidth() * 0.5) && hh <= (int)(this.area.getHeight() * 0.5);
+                float backgroundColor = this.isCave[ww][hh] || isTunnel ? 0.4F : 0.7F;
+
+                //draw the darkened background
+                drawTexturedColoredRect(builder, transform, areaX+ww*tileSize, areaY+hh*tileSize, tileSize, tileSize,
+                        backgroundColor,backgroundColor,backgroundColor,
+                        1, stoneSprite.getU0(), stoneSprite.getU1(), stoneSprite.getV0(), stoneSprite.getV1());
+
+                if(this.isCave[ww][hh]) {
+                    //draws the fluids in this row using fluidHoleAMount
+                    float fluidHeight = 0;
+                    if(totalCaveHoles > 0)
+                        for (int i = fluidHoleAMount.length - 1; i >= 0; i--) {
+                            int col = fluids[i].getFluid().getAttributes().getColor(fluids[i]);
+                            float ratio = fluidHoleAMount[i] / totalCaveHoles;
+                            TextureAtlasSprite fluidSprite = getSprite(fluids[i].getFluid().getAttributes().getStillTexture());
+
+                            if(isInArea(areaX + ww * tileSize, areaY + hh * tileSize + fluidHeight, tileSize, tileSize * ratio, mouseX, mouseY))
+                                TextUtils.addFluidStackTooltip(fluids[i], tooltip, reservoir.getCapacity());
+
+                            drawTexturedColoredRect(builder, transform, areaX + ww * tileSize, areaY + hh * tileSize + fluidHeight, tileSize, tileSize * ratio,
+                                    (col >> 16 & 255) / 255.0f, (col >> 8 & 255) / 255.0f, (col & 255) / 255.0f,
+                                    1F, fluidSprite.getU0(), fluidSprite.getU1(), fluidSprite.getV0(), fluidSprite.getV0() + (fluidSprite.getV1() - fluidSprite.getV0()) * ratio);
+                            fluidHeight += ratio * tileSize;
+                        }
                 }
             }
         }
-
-        int height = 200;
-        int fluidHeight = (int)(height*(0.1));
-        drawRepeatedFluidSprite(builder, transform, new FluidStack(Fluids.WATER,1),0,height - fluidHeight,100,fluidHeight);
-
-
-
-
-        /*
-        int reservoirHeight = maxY - minY;
-        float waterPercentage = 0.254532F;
-        float lavaPercentage = 1.0F - waterPercentage;
-        int fluidHeight = (int)(reservoirHeight*waterPercentage);
-        float remaining = (reservoirHeight * waterPercentage - fluidHeight);
-        int lavaFluidHeight = (int)(reservoirHeight*lavaPercentage);
-        float lavaRemaining = (reservoirHeight * lavaPercentage - lavaFluidHeight);
-
-        for(int ww = 0;ww < this.area.getWidth();ww++)
-        {
-
-            float leftoverH = tileSize * remaining;
-
-            for(int hh = 0;hh < fluidHeight;hh++)
-            {
-                drawTexturedColoredRect(builder, transform, areaX + ww * tileSize, areaY + (maxY - hh) * tileSize, tileSize, tileSize,
-                        (col >> 16 & 255) / 255.0f, (col >> 8 & 255) / 255.0f, (col & 255) / 255.0f,
-                        1, fluidSprite.getU0(), fluidSprite.getU1(), fluidSprite.getV0(), fluidSprite.getV1());
-            }
-
-
-
-            drawTexturedColoredRect(builder, transform, areaX + ww * tileSize, areaY + (maxY - fluidHeight) * tileSize + (tileSize - leftoverH), tileSize, leftoverH,
-                    (col >> 16 & 255) / 255.0f, (col >> 8 & 255) / 255.0f, (col & 255) / 255.0f,
-                    1, fluidSprite.getU0(), fluidSprite.getU1(), fluidSprite.getV0(), fluidSprite.getV1());
-
-            float secondFluidShift = tileSize - leftoverH;
-            float leftoverLavaH = tileSize * lavaRemaining;
-
-            for(int hh = 0;hh < lavaFluidHeight + 1;hh++)
-            {
-                drawTexturedColoredRect(builder, transform, areaX + ww * tileSize, areaY + secondFluidShift + (maxY - fluidHeight - 1 - hh) * tileSize, tileSize, tileSize,
-                        1,1,1,
-                        0.5F, lavaSprite.getU0(), lavaSprite.getU1(), lavaSprite.getV0(), lavaSprite.getV1());
-            }
-
-            drawTexturedColoredRect(builder, transform, areaX + ww * tileSize, areaY + (maxY - fluidHeight - lavaFluidHeight - 1) * tileSize, tileSize, leftoverLavaH,
-                    1, 1,1,
-                    0.5F, lavaSprite.getU0(), lavaSprite.getU1(), lavaSprite.getV0(), lavaSprite.getV1());
-
-        }
-
-         */
 
         buffer.endBatch();
         transform.popPose();
-
     }
 
-
-
-
-    @Override
-    protected void fillToolTip(List<Component> list) {
-
+    private boolean isInArea(float x, float y, float width, float height, int mouseX, int mouseY)
+    {
+        return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 }

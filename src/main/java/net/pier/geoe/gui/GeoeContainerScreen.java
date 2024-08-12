@@ -20,7 +20,7 @@ public abstract class GeoeContainerScreen< G extends GeoeContainerMenu<?>> exten
     }
 
     @Override
-    protected void init() {
+    public void init() {
         super.init();
         this.infoAreas.clear();
     }
@@ -29,13 +29,11 @@ public abstract class GeoeContainerScreen< G extends GeoeContainerMenu<?>> exten
     @Override
     public void render(@Nonnull PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderBackground(pPoseStack);
-        this.infoAreas.forEach(infoArea -> infoArea.draw(pPoseStack));
 
         List<Component> tooltip = new LinkedList<>();
 
         for (InfoArea infoArea : this.infoAreas) {
-            infoArea.draw(pPoseStack);
-            infoArea.fillToolTip(tooltip, pMouseX, pMouseY);
+            infoArea.draw(pPoseStack, tooltip, pMouseX, pMouseY);
         }
 
         if(!tooltip.isEmpty())

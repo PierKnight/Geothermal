@@ -14,13 +14,14 @@ public abstract class InfoArea {
         this.area = area;
     }
 
-    public void fillToolTip(List<Component> list, int mouseX, int mouseY)
+    protected void fillToolTip(List<Component> list)
+    {
+    }
+
+    public void draw(PoseStack transform, List<Component> list, int mouseX, int mouseY)
     {
         if(this.area.contains(mouseX, mouseY))
             this.fillToolTip(list);
     }
 
-    public abstract void draw(PoseStack transform);
-
-    protected abstract void fillToolTip(List<Component> list);
 }

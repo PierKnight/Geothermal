@@ -75,5 +75,6 @@ public abstract class GeoeContainerMenu<T extends BlockEntity> extends AbstractC
     {
         for(Pair<Integer, DataContainerType.DataPair<?>> syncElement : synced)
             this.properties.get(syncElement.getFirst()).processSync(syncElement.getSecond().data());
+
     }
 }

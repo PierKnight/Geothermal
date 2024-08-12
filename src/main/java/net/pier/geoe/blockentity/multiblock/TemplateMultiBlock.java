@@ -83,7 +83,7 @@ public class TemplateMultiBlock implements IMultiBlock{
             state.getOptionalValue(BlockMachineFrame.COMPLETE).ifPresent((c) -> level.setBlock(worldPos, state.setValue(BlockMachineFrame.COMPLETE, complete), 3));
 
             if(state.getBlock() instanceof ValveBlock && level.getBlockEntity(worldPos) instanceof ValveBlockEntity valve)
-                valve.updateController(complete ? pos : null, structureBlockInfo.nbt.getInt("index"));
+                valve.updateController(complete ? pos : null, complete ? structureBlockInfo.nbt.getInt("index") : 0);
             return true;
         });
     }

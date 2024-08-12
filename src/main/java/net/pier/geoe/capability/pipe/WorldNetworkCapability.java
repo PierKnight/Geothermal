@@ -1,4 +1,4 @@
-package net.pier.geoe.capability.world;
+package net.pier.geoe.capability.pipe;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -7,12 +7,14 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.block.EnumPipeConnection;
 import net.pier.geoe.block.GeothermalPipeBlock;
@@ -51,6 +53,8 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
 
         PipeNetwork network = this.networks.get(pipe.getNetworkUUID());
         PipeNetwork nearNetwork = this.networks.get(nearPipe.getNetworkUUID());
+        if(nearNetwork == null)
+            return;
         boolean fluidCompatible = nearNetwork.internalTank.isEmpty() || network.internalTank.isEmpty() || nearNetwork.internalTank.getFluid().isFluidEqual(network.internalTank.getFluid());
 
         if(!fluidCompatible)
@@ -145,9 +149,12 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
         pipe.setNetworkUUID(newPipeNetwork.getIdentifier());
 
         HashSet<UUID> nearNetworks = new HashSet<>();
-        for (Direction direction : DIRECTIONS)
+        for (Direction direction : DIRECTIONS) {
             connectPipe(level, pos, direction, nearNetworks);
-
+            BlockEntity blockEntity = level.getBlockEntity(pos.relative(direction));
+            if(blockEntity != null && blockEntity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite()).isPresent())
+                syncDirection(level, pos, pipe,direction, EnumPipeConnection.INPUT);
+        }
     }
 
     public void onPipeBroken(Level world, BlockPos pos, PipeBlockEntity oldPipeInfo)
@@ -155,6 +162,7 @@ public class WorldNetworkCapability implements INBTSerializable<Tag>
         PipeNetwork oldNetwork = this.networks.get(oldPipeInfo.getNetworkUUID());
         if(oldNetwork == null) {
             System.out.println("SHOULD NOT BE POSSIBLE");
+            this.networks.remove(oldPipeInfo.getNetworkUUID());
             return;
         }
 

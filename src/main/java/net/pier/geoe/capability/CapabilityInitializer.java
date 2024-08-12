@@ -18,7 +18,8 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.capability.world.WorldNetworkCapability;
+import net.pier.geoe.capability.reservoir.ReservoirCapability;
+import net.pier.geoe.capability.pipe.WorldNetworkCapability;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

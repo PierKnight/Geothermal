@@ -22,6 +22,7 @@ public class PacketManager
         registerMessage(PacketGasSound.class, PacketGasSound::new);
         registerMessage(PacketMultiBlockInfo.class, PacketMultiBlockInfo::new);
         registerMessage(PacketContainerSync.class, PacketContainerSync::new);
+        registerMessage(PacketBreakingBlocks.class, PacketBreakingBlocks::new);
     }
 
 

@@ -39,8 +39,10 @@ public class FluidInfoArea extends InfoArea
     }
 
 
-    public void draw(PoseStack transform)
+    @Override
+    public void draw(PoseStack transform, List<Component> list, int mouseX, int mouseY)
     {
+        super.draw(transform, list, mouseX, mouseY);
         FluidStack fluid = tank.getFluid();
         float capacity = tank.getCapacity();
         transform.pushPose();

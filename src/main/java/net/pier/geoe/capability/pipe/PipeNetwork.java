@@ -1,4 +1,4 @@
-package net.pier.geoe.capability.world;
+package net.pier.geoe.capability.pipe;
 
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.core.BlockPos;

@@ -3,7 +3,7 @@ package net.pier.geoe.gui.data;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.fluids.FluidStack;
-import net.pier.geoe.capability.world.Reservoir;
+import net.pier.geoe.capability.reservoir.Reservoir;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ public class DataContainerType {
     public static final Serializer<Reservoir> RESERVOIR = register(buf -> new Reservoir(Objects.requireNonNull(buf.readNbt())),
             (buf, reservoir) -> buf.writeNbt(reservoir.save(new CompoundTag())),
             reservoir -> new Reservoir(reservoir.save(new CompoundTag())),
-            (reservoir, reservoir2) -> FluidStack.areFluidStackTagsEqual(reservoir.getInput(), reservoir2.getInput()) && FluidStack.areFluidStackTagsEqual(reservoir.getFluid(), reservoir2.getFluid()));
+            (reservoir, reservoir2) -> reservoir.getInput().isFluidStackIdentical(reservoir2.getInput()) && reservoir.getFluid().isFluidStackIdentical(reservoir2.getFluid()));
 
     private static <T> Serializer<T> register(Function<FriendlyByteBuf, T> read,
                                               BiConsumer<FriendlyByteBuf, T> write,

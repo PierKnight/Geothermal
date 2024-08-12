@@ -7,7 +7,7 @@ import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.gui.ExtractorMenu;
+import net.pier.geoe.gui.WellMenu;
 import net.pier.geoe.gui.GeoeContainerMenu;
 import net.pier.geoe.gui.MenuContext;
 
@@ -18,7 +18,7 @@ public class GeoeMenuTypes {
 
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registry.MENU_REGISTRY, Geothermal.MODID);
 
-    public static final RegistryObject<MenuType<ExtractorMenu>> EXTRACTOR = register("extractor", context -> new ExtractorMenu( context.windowId(), context.inv(), context.be()));
+    public static final RegistryObject<MenuType<WellMenu>> EXTRACTOR = register("extractor", context -> new WellMenu( context.windowId(), context.inv(), context.be()));
 
     @SuppressWarnings("unchecked")
     private static <T extends BlockEntity, A extends GeoeContainerMenu<T>> RegistryObject<MenuType<A>> register(String name, Function<MenuContext<T>, A> supplier)

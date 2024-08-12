@@ -17,8 +17,8 @@ import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.EnumPipeConnection;
 import net.pier.geoe.block.GeothermalPipeBlock;
 import net.pier.geoe.blockentity.PipeBlockEntity;
-import net.pier.geoe.capability.world.PipeNetwork;
-import net.pier.geoe.capability.world.WorldNetworkCapability;
+import net.pier.geoe.capability.pipe.PipeNetwork;
+import net.pier.geoe.capability.pipe.WorldNetworkCapability;
 import net.pier.geoe.register.GeoeBlocks;
 import oshi.util.tuples.Pair;
 

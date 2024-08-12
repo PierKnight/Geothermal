@@ -2,7 +2,7 @@
   "replace": false,
   "values": [
     "geoe:geothermal_pipe",
-    "geoe:extractor",
+    "geoe:production_well",
     "geoe:glass",
     "geoe:frame",
     "geoe:fluid_input_valve",

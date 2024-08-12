@@ -1,4 +1,4 @@
-package net.pier.geoe.capability;
+package net.pier.geoe.capability.reservoir;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,7 +13,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.pier.geoe.capability.world.Reservoir;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,7 +85,7 @@ public class ReservoirCapability implements INBTSerializable<Tag>
 
     public void tick()
     {
-        this.tickingReservoirs.forEach(chunkPos -> this.map.get(chunkPos).update());
+        this.tickingReservoirs.forEach(chunkPos -> this.map.get(chunkPos).update(level, chunkPos));
     }
 
 

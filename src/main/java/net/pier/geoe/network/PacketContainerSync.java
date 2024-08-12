@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
 import net.pier.geoe.gui.GeoeContainerMenu;
+import net.pier.geoe.gui.GeoeContainerScreen;
 import net.pier.geoe.gui.data.DataContainerType;
 
 import java.util.List;
@@ -41,8 +42,9 @@ public class PacketContainerSync implements IPacket{
         context.get().enqueueWork(() ->
         {
             Player player = Minecraft.getInstance().player;
-            if(player != null && player.containerMenu instanceof GeoeContainerMenu<?> geoeContainerMenu)
+            if(player != null && player.containerMenu instanceof GeoeContainerMenu<?> geoeContainerMenu) {
                 geoeContainerMenu.receiveSync(this.synced);
+            }
         });
 
     }

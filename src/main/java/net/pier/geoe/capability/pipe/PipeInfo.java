@@ -1,4 +1,4 @@
-package net.pier.geoe.capability.world;
+package net.pier.geoe.capability.pipe;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

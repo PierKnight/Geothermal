@@ -9,7 +9,7 @@
     "extra": {
       "connect_to": [
         {
-          "block": "geoe:extractor",
+          "block": "geoe:production_well",
           "predicate": [
             {
               "complete": "true",
