@@ -1,6 +1,7 @@
 plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id "org.spongepowered.mixin" version "0.7.+"
 }
 
 
@@ -119,6 +120,14 @@ repositories {
     maven { url 'https://modmaven.dev/' }
 }
 
+mixin {
+    // MixinGradle Settings
+    config 'geoe.mixins.json'
+
+    debug.verbose = true
+    debug.export = true
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.1.68'
 
@@ -126,7 +135,11 @@ dependencies {
     runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465")// core
     //runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465:additions")// Mekanism: Additions
     runtimeOnly fg.deobf("mekanism:Mekanism:1.18.2-10.2.5.465:generators")// Mekanism: Generators
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
 }
+
+
 
 
 // Example for how to get properties into the manifest for reading at runtime.
