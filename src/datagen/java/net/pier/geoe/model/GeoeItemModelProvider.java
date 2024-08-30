@@ -19,13 +19,7 @@ public class GeoeItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        GeoeBlocks.REGISTER.getEntries().stream().filter(block -> block.get().asItem() != Items.AIR)
-                .map(blockRegistryObject -> blockRegistryObject.get().getRegistryName())
-                .filter(Objects::nonNull).forEach(resourceLocation -> {
 
-            String name = resourceLocation.getPath();
-            getBuilder(name).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name)));
-        });
     }
 
 

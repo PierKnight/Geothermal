@@ -5,7 +5,7 @@
         "north": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side"
+        "model": "geoe:block/geothermal_pipe_side"
       }
     },
     {
@@ -13,7 +13,7 @@
         "north": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side"
+        "model": "geoe:block/geothermal_pipe_side"
       }
     },
     {
@@ -21,7 +21,7 @@
         "north": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side"
+        "model": "geoe:block/geothermal_pipe_side"
       }
     },
     {
@@ -29,7 +29,7 @@
         "east": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 90,
         "uvlock": true
       }
@@ -39,7 +39,7 @@
         "east": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 90,
         "uvlock": true
       }
@@ -49,7 +49,7 @@
         "east": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 90,
         "uvlock": true
       }
@@ -59,7 +59,7 @@
         "south": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 180,
         "uvlock": true
       }
@@ -69,7 +69,7 @@
         "south": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 180,
         "uvlock": true
       }
@@ -79,7 +79,7 @@
         "south": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 180,
         "uvlock": true
       }
@@ -89,7 +89,7 @@
         "west": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 270,
         "uvlock": true
       }
@@ -99,7 +99,7 @@
         "west": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 270,
         "uvlock": true
       }
@@ -109,7 +109,7 @@
         "west": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "y": 270,
         "uvlock": true
       }
@@ -119,7 +119,7 @@
         "up": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 270,
         "uvlock": true
       }
@@ -129,7 +129,7 @@
         "up": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 270,
         "uvlock": true
       }
@@ -139,7 +139,7 @@
         "up": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 270,
         "uvlock": true
       }
@@ -149,7 +149,7 @@
         "down": "input"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 90,
         "uvlock": true
       }
@@ -159,7 +159,7 @@
         "down": "output"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 90,
         "uvlock": true
       }
@@ -169,7 +169,7 @@
         "down": "pipe"
       },
       "apply": {
-        "model": "minecraft:block/chorus_plant_side",
+        "model": "geoe:block/geothermal_pipe_side",
         "x": 90,
         "uvlock": true
       }
@@ -180,17 +180,17 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2
         },
         {
-          "model": "minecraft:block/chorus_plant_noside1"
+          "model": "geoe:block/geothermal_pipe"
         },
         {
-          "model": "minecraft:block/chorus_plant_noside2"
+          "model": "geoe:block/geothermal_pipe"
         },
         {
-          "model": "minecraft:block/chorus_plant_noside3"
+          "model": "geoe:block/geothermal_pipe"
         }
       ]
     },
@@ -200,22 +200,22 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside1",
+          "model": "geoe:block/geothermal_pipe",
           "y": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside2",
+          "model": "geoe:block/geothermal_pipe",
           "y": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside3",
+          "model": "geoe:block/geothermal_pipe",
           "y": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2,
           "y": 90,
           "uvlock": true
@@ -228,23 +228,23 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside2",
+          "model": "geoe:block/geothermal_pipe",
           "y": 180,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside3",
+          "model": "geoe:block/geothermal_pipe",
           "y": 180,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2,
           "y": 180,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside1",
+          "model": "geoe:block/geothermal_pipe",
           "y": 180,
           "uvlock": true
         }
@@ -256,23 +256,23 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside3",
+          "model": "geoe:block/geothermal_pipe",
           "y": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2,
           "y": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside1",
+          "model": "geoe:block/geothermal_pipe",
           "y": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside2",
+          "model": "geoe:block/geothermal_pipe",
           "y": 270,
           "uvlock": true
         }
@@ -284,23 +284,23 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2,
           "x": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside3",
+          "model": "geoe:block/geothermal_pipe",
           "x": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside1",
+          "model": "geoe:block/geothermal_pipe",
           "x": 270,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside2",
+          "model": "geoe:block/geothermal_pipe",
           "x": 270,
           "uvlock": true
         }
@@ -312,22 +312,22 @@
       },
       "apply": [
         {
-          "model": "minecraft:block/chorus_plant_noside3",
+          "model": "geoe:block/geothermal_pipe",
           "x": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside2",
+          "model": "geoe:block/geothermal_pipe",
           "x": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside1",
+          "model": "geoe:block/geothermal_pipe",
           "x": 90,
           "uvlock": true
         },
         {
-          "model": "minecraft:block/chorus_plant_noside",
+          "model": "geoe:block/geothermal_pipe",
           "weight": 2,
           "x": 90,
           "uvlock": true

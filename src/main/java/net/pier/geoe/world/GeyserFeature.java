@@ -42,7 +42,8 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
 {
     private static final BlockState AIR = Blocks.AIR.defaultBlockState();
     private static final BlockState WATER = GeoeBlocks.GEYSER_WATER.get().defaultBlockState();
-    private static final Direction[] DIRECTIONS = new Direction[]{Direction.DOWN, Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH};
+
+    private static final BlockState GEYSERITE = GeoeBlocks.GEYSERITE.get().defaultBlockState();
 
 
     public GeyserFeature(Codec<GeyserFeature.Configuration> pCodec)
@@ -55,7 +56,6 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
     public boolean place(FeaturePlaceContext<GeyserFeature.Configuration> context)
     {
 
-        context.chunkGenerator().climateSampler().sample(0,0,0).
         //System.out.println(Thread.currentThread().getName());
         BlockPos origin = context.origin();
         WorldGenLevel worldgenlevel = context.level();
@@ -144,12 +144,12 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
                                 float geyseriteProb = 1.0F - Math.min(10,minHeight - placingPos.getY()) / 10.0F;
                                 BlockStateProvider borderProvider = calc(config, currentLayerIndex, y, random);
                                 if(random.nextFloat() <= geyseriteProb)
-                                    this.safeSetBlock(worldgenlevel, placingPos, Blocks.DIORITE.defaultBlockState(), this::safeAirReplace);
+                                    this.safeSetBlock(worldgenlevel, placingPos, GEYSERITE, this::safeAirReplace);
                                 else
                                     this.safeSetBlock(worldgenlevel, placingPos, borderProvider.getState(random, placingPos), this::safeAirReplace);
                             }
                             else
-                                this.safeSetBlock(worldgenlevel, placingPos, Blocks.DIORITE.defaultBlockState(), (blockState -> !blockState.isAir() && safeAirReplace(blockState)));
+                                this.safeSetBlock(worldgenlevel, placingPos, GEYSERITE, (blockState -> !blockState.isAir() && safeAirReplace(blockState)));
                         }
 
                         if(placingPos.getY() >= startY)

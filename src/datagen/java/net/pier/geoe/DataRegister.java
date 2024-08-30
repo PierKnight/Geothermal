@@ -20,15 +20,14 @@ public class DataRegister {
     {
         ExistingFileHelper exHelper = event.getExistingFileHelper();
         DataGenerator gen = event.getGenerator();
-        if(event.includeServer())
-        {
-            BlockTagsProvider blockTags = new GeoeBlockTags(gen, exHelper);
-            gen.addProvider(blockTags);
-            gen.addProvider(new GeoeItemTags(gen, blockTags, exHelper));
-            gen.addProvider(new GeoeLootProvider(gen));
-            gen.addProvider(new GeoeItemModelProvider(gen, exHelper));
-            gen.addProvider(new GeoeBlockStateProvider(gen, exHelper));
-            gen.addProvider(new CTMTextureProvider(gen));
-        }
+
+        BlockTagsProvider blockTags = new GeoeBlockTags(gen, exHelper);
+        gen.addProvider(blockTags);
+        gen.addProvider(new GeoeItemTags(gen, blockTags, exHelper));
+        gen.addProvider(new GeoeLootProvider(gen));
+        gen.addProvider(new GeoeItemModelProvider(gen, exHelper));
+        gen.addProvider(new GeoeBlockStateProvider(gen, exHelper));
+        gen.addProvider(new CTMTextureProvider(gen));
     }
+
 }

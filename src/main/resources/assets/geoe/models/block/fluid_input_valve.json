@@ -1,29 +1,30 @@
 {
-  "parent": "block/block",
-  "textures": {
-    "frame": "geoe:block/frame",
-    "port": "geoe:block/fluid_input",
-    "particle": "geoe:block/frame"
-  },
-  "elements": [
-    {
-      "from": [ 0, 0, 0 ],
-      "to": [ 16, 16, 16 ],
-      "faces": {
-        "down":  { "texture": "#frame", "cullface": "down" },
-        "up":    { "texture": "#frame", "cullface": "up" },
-        "north": { "texture": "#frame", "cullface": "north" },
-        "south": { "texture": "#frame", "cullface": "south" },
-        "west":  { "texture": "#frame", "cullface": "west" },
-        "east":  { "texture": "#frame", "cullface": "east" }
-      }
-    },
-    {
-      "from": [ 0, 0, 0 ],
-      "to": [ 16, 16, 16 ],
-      "faces": {
-        "north": { "texture": "#port", "cullface": "north", "tintindex": 0 }
-      }
-    }
-  ]
+	"credit": "Made with Blockbench",
+	"parent": "block/block",
+	"textures": {
+		"particle": "geoe:block/frame",
+		"frame": "geoe:block/frame",
+		"port": "geoe:block/fluid_input"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "north"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "east"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "south"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "west"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "up"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#frame", "cullface": "down"}
+			}
+		},
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#port", "cullface": "north", "tintindex": 0}
+			}
+		}
+	]
 }

@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -28,7 +29,9 @@ import java.util.function.Supplier;
 public class GeoeBlocks
 {
 
+
     public static final DeferredRegister<Block> REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS, Geothermal.MODID);
+
     public static final RegistryObject<Block> PRODUCTION_WELL = registerBlock("production_well", () -> new ProductionWellBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
     public static final RegistryObject<Block> PIPE = registerBlock("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)), true);
     public static final RegistryObject<Block> GLASS = registerBlock("glass", () -> new GlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(GeoeBlocks::never).isRedstoneConductor(GeoeBlocks::never).isSuffocating(GeoeBlocks::never).isViewBlocking(GeoeBlocks::never)), true);
@@ -37,6 +40,11 @@ public class GeoeBlocks
     public static final RegistryObject<Block> GEYSER_WATER = registerBlock("geyser_water", GeyserWaterBlock::new, false);
 
 
+
+    public static final RegistryObject<Block> GEYSERITE = registerBlock("geyserite", () -> new Block(BlockBehaviour.Properties.of(Material.STONE, MaterialColor.STONE).requiresCorrectToolForDrops().strength(1.5F, 6.0F)), true);
+
+
+    //BLOCK ENTITIES
     public static final DeferredRegister<BlockEntityType<?>> BE_REGISTER = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Geothermal.MODID);
     public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
 
@@ -66,13 +74,6 @@ public class GeoeBlocks
             GeoeItems.REGISTER.register(name, () -> new BlockItem(object.get(),new Item.Properties().tab(Geothermal.CREATIVE_TAB)));
         return object;
     }
-
-    private static RegistryObject<Block> registerValve(ValveBlockEntity.Type type, ValveBlockEntity.Flow flow)
-    {
-        return registerBlock("valve_" + type.name() + "_" + flow.name(),() -> new ValveBlock(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL), type, flow), true);
-    }
-
-
 
     private static Boolean never(BlockState p_50779_, BlockGetter p_50780_, BlockPos p_50781_, EntityType<?> p_50782_) {
         return false;

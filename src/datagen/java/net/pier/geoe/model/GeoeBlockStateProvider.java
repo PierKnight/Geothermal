@@ -2,6 +2,7 @@ package net.pier.geoe.model;
 
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
@@ -13,6 +14,8 @@ import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.block.ValveBlock;
 import net.pier.geoe.register.GeoeBlocks;
 
+import java.util.Objects;
+
 public class GeoeBlockStateProvider extends BlockStateProvider {
 
     public GeoeBlockStateProvider(DataGenerator gen, ExistingFileHelper exFileHelper) {
@@ -23,6 +26,10 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
 
+
+        simpleBlock(GeoeBlocks.GEYSERITE.get());
+
+        //all possible valve types
         for (RegistryObject<Block> value : GeoeBlocks.VALVES_BLOCK.values()) {
 
             Block block = value.get();
@@ -38,17 +45,32 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
         }
 
         for (RegistryObject<Block> entry : GeoeBlocks.REGISTER.getEntries()) {
+
+
+
+            String name = Objects.requireNonNull(entry.get().getRegistryName()).getPath();
+
+            //controller blockstates
             if(entry.get() instanceof ControllerBlock<?> controllerBlock)
             {
-                ModelFile incompleteModelFile = new ModelFile.ExistingModelFile(modLoc(String.format("block/%s", entry.get().getRegistryName().getPath())), this.models().existingFileHelper);
-                ModelFile completeModelFile = new ModelFile.ExistingModelFile(modLoc(String.format("block/%s_complete", entry.get().getRegistryName().getPath())), this.models().existingFileHelper);
+                ModelFile incompleteModelFile = new ModelFile.ExistingModelFile(modLoc(String.format("block/%s", name)), this.models().existingFileHelper);
+                ModelFile completeModelFile = new ModelFile.ExistingModelFile(modLoc(String.format("block/%s_complete", name)), this.models().existingFileHelper);
 
                 for (Direction direction : Direction.Plane.HORIZONTAL) {
+
+                    //BlockState
                     getVariantBuilder(controllerBlock)
                             .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, false).modelForState().rotationY((int) -direction.toYRot() + 180).modelFile(incompleteModelFile).addModel()
                             .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, true).modelForState().rotationY((int) -direction.toYRot() + 180).modelFile(completeModelFile).addModel();
+
+
                 }
             }
+
+            //add item models to any block with a corresponding item block
+            if(entry.get().asItem() != Items.AIR)
+                itemModels().withExistingParent(name, modLoc("block/" + name));
+
         }
     }
 }
