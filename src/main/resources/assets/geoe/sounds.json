@@ -2,5 +2,21 @@
   "block.geothermal_pipe.leak": {
     "sounds": [ "geoe:gas_leak" ],
     "subtitle": "geoe.block.pipe.leak"
+  },
+  "ambient.earthquake": {
+    "sounds": [
+      {
+        "name": "geoe:earthquake1",
+        "attenuation_distance": 64
+      },
+      {
+        "name": "geoe:earthquake2",
+        "attenuation_distance": 64
+      },
+      {
+        "name": "geoe:earthquake3",
+        "attenuation_distance": 64
+      }
+    ]
   }
 }

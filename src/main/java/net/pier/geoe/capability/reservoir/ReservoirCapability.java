@@ -1,5 +1,6 @@
 package net.pier.geoe.capability.reservoir;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -59,7 +60,7 @@ public class ReservoirCapability implements INBTSerializable<Tag>
             int temperature = 1 + worldgenrandom.nextInt(4);
             Reservoir.Type type = Reservoir.Type.values()[worldgenrandom.nextInt(Reservoir.Type.values().length)];
             int throughput = 100 + worldgenrandom.nextInt(1000);
-            return new Reservoir(capacity,throughput,temperature,type);
+            return new Reservoir(chunkPos, capacity,throughput,temperature,type);
         }
         return null;
     }
@@ -67,10 +68,14 @@ public class ReservoirCapability implements INBTSerializable<Tag>
     public Reservoir getReservoir(ChunkPos chunkPos)
     {
         Reservoir reservoir = this.map.get(chunkPos);
-        if(reservoir == null && this.level instanceof ServerLevel) {
-            if(level.getChunkSource().hasChunk(chunkPos.x,chunkPos.z))
-                this.tickingReservoirs.add(chunkPos);
-            reservoir = getReservoirWorldInfo(chunkPos);
+        if(reservoir == null) {
+            if(!this.level.isClientSide) {
+                if (level.getChunkSource().hasChunk(chunkPos.x, chunkPos.z))
+                    this.tickingReservoirs.add(chunkPos);
+                reservoir = getReservoirWorldInfo(chunkPos);
+            }
+            else
+                reservoir = new Reservoir(chunkPos, 0,0,0, Reservoir.Type.GEOTHERMAL);
             this.map.put(chunkPos, reservoir);
         }
         return reservoir;
@@ -78,10 +83,14 @@ public class ReservoirCapability implements INBTSerializable<Tag>
 
     public void appendTickingReservoir(ChunkPos pos)
     {
-        if(this.map.get(pos) != null)
+        if(this.isReservoirDirty(pos))
             this.tickingReservoirs.add(pos);
     }
 
+    public boolean isReservoirDirty(ChunkPos chunkPos)
+    {
+        return this.map.get(chunkPos) != null;
+    }
 
     public void tick()
     {

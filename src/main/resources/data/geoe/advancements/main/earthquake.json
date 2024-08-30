@@ -1,0 +1,24 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:cobblestone"
+    },
+    "title": "",
+    "description": [
+      {
+        "translate": "advancement.geoe.main_root.desc"
+      }
+    ],
+    "background": "geoe:frame",
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "requirement": {
+      "trigger": "geoe:earthquake"
+    }
+  },
+  "rewards": {}
+}

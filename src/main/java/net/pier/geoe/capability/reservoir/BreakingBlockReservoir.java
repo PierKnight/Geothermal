@@ -11,15 +11,26 @@ public class BreakingBlockReservoir {
 
     private int internalProgress = 0;
 
-    public BreakingBlockReservoir(BlockPos pos, int progress, int progressSteps) {
+    private final int delay;
+
+    public BreakingBlockReservoir(BlockPos pos, int progress, int progressSteps, int delay) {
         this.pos = pos;
         this.progress = progress;
         this.progressSteps = progressSteps;
+        this.delay = delay;
+    }
+
+    public int getProgressSteps() {
+        return progressSteps;
     }
 
     protected void increaseProgress()
     {
-        if(++this.internalProgress % this.progressSteps == 0)
+        if(++this.internalProgress >= this.delay && (this.internalProgress - this.delay) % this.progressSteps == 0)
             this.progress++;
+    }
+
+    public int getDelay() {
+        return delay;
     }
 }

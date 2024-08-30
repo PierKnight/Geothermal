@@ -11,6 +11,7 @@ public class GeoeSounds {
 
     public static final DeferredRegister<SoundEvent> REGISTER = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Geothermal.MODID);
     public static final RegistryObject<SoundEvent> GAS_LEAK = registerEvent("gas_leak", "block.geothermal_pipe.leak");
+    public static final RegistryObject<SoundEvent> EARTHQUAKE = registerEvent("earthquake", "ambient.earthquake");
 
 
     private static RegistryObject<SoundEvent> registerEvent(String name, String path)

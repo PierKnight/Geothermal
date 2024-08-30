@@ -1,7 +1,9 @@
 package net.pier.geoe.capability.reservoir;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -15,9 +17,11 @@ import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.network.PacketDistributor;
-import net.pier.geoe.network.PacketBreakingBlocks;
+import net.pier.geoe.client.sound.SoundManager;
 import net.pier.geoe.network.PacketManager;
+import net.pier.geoe.network.PacketReservoirSync;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,6 +30,8 @@ import java.util.function.Predicate;
 
 public class Reservoir implements IFluidTank, IFluidHandler {
 
+
+    private final ChunkPos chunkPos;
     private final FluidTank inputTank;
     private final FluidTank outputTank;
 
@@ -34,19 +40,25 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     private final int temperature;
     private final Type type;
 
-    private final List<BreakingBlockReservoir> breakingBlocks = new LinkedList<>();
+    //EarthQuake
+    private List<BreakingBlockReservoir> breakingBlocks = new LinkedList<>();
+    private int earthquakeTime = 0;
 
 
-    public Reservoir(int capacity, int throughput,int temperature,Type type) {
+    public Reservoir(ChunkPos chunkPos, int capacity, int throughput,int temperature,Type type) {
         this.inputTank = new FluidTank(capacity, type.inputFluid);
         this.outputTank = new FluidTank(capacity);
         this.capacity = capacity;
         this.throughput = throughput;
         this.type = type;
         this.temperature = temperature;
+        this.chunkPos = chunkPos;
+
+        //Validate.inclusiveBetween(capacity, 10000,50000);
     }
 
     public Reservoir(CompoundTag tag) {
+        this.chunkPos = new ChunkPos(tag.getInt("chunkX"),tag.getInt("chunkZ"));
         this.capacity = tag.getInt("capacity");
         this.type = Type.values()[tag.getInt("type")];
         this.inputTank = new FluidTank(capacity, type.inputFluid).readFromNBT(tag.getCompound("inputTank"));
@@ -57,26 +69,6 @@ public class Reservoir implements IFluidTank, IFluidHandler {
 
 
 
-    @NotNull
-    @Override
-    public FluidStack getFluid() {
-        return this.outputTank.getFluid();
-    }
-
-    @Override
-    public int getFluidAmount() {
-        return this.inputTank.getFluidAmount() + this.outputTank.getFluidAmount();
-    }
-
-    @NotNull
-    public FluidStack getInput() {
-        return this.inputTank.getFluid();
-    }
-
-    @Override
-    public int getCapacity() {
-        return this.capacity;
-    }
 
     public int getTemperature() {
         return temperature;
@@ -90,55 +82,48 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         return type;
     }
 
-    @Override
-    public boolean isFluidValid(@NotNull FluidStack stack) {
-        return this.type.inputFluid.test(stack);
+
+    public float getEarthquakeTime()
+    {
+        if(this.breakingBlocks.isEmpty() && this.earthquakeTime == 0)
+            return -1.0F;
+        return this.earthquakeTime / 20F;
     }
 
     public void update(Level level, ChunkPos chunkPos)
     {
-        int conversionAmount = 100;
 
-        int amount = this.inputTank.drain(conversionAmount, FluidAction.SIMULATE).getAmount();
-        int fillAmount = this.outputTank.fill(new FluidStack(this.type.outputFluid,amount), IFluidHandler.FluidAction.EXECUTE);
-        this.inputTank.drain(fillAmount, FluidAction.EXECUTE);
+        if(!level.isClientSide) {
+            int conversionAmount = 100;
 
+            int amount = this.inputTank.drain(conversionAmount, FluidAction.SIMULATE).getAmount();
+            int fillAmount = this.outputTank.fill(new FluidStack(this.type.outputFluid, amount), IFluidHandler.FluidAction.EXECUTE);
+            this.inputTank.drain(fillAmount, FluidAction.EXECUTE);
 
+            if (this.earthquakeTime == 0 && level.random.nextFloat() <= 1.0F / 1200F)
+                startEarthquake(level, chunkPos);
+        }
 
-        /*
-        if(level.getGameTime() % 20 == 0 && this.breakingBlocks.isEmpty())
-            for(int i = 0;i < 16;i++){
-                for(int j = 0;j < 16;j++)
-                {
-                    double distance = Math.pow(i - 7, 2) + Math.pow(j - 7, 2);
-                    double probability = 1D - distance / 128D;
-                    if(level.random.nextDouble() < 0.4F)
-                        updateEarthQuake(level, chunkPos.getBlockX(i),chunkPos.getBlockZ(j));
-                        //collapseChunk(level, chunkPos.getBlockX(i),chunkPos.getBlockZ(j));
-                }
-            }
-
-         */
-
-
-
+        //EarthQuake Breaking Blocks
         if(level.getGameTime() % 5 == 0) {
             Iterator<BreakingBlockReservoir> iterator = this.breakingBlocks.iterator();
 
-            if (!this.breakingBlocks.isEmpty())
-                PacketManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunk(chunkPos.x, chunkPos.z)), new PacketBreakingBlocks(this.breakingBlocks));
-
-
             while (iterator.hasNext()) {
                 BreakingBlockReservoir breakingBlock = iterator.next();
+                if(level.isClientSide)
+                    Minecraft.getInstance().levelRenderer.destroyBlockProgress(breakingBlock.pos.hashCode(), breakingBlock.pos, breakingBlock.progress);
                 if (breakingBlock.progress >= 10) {
                     iterator.remove();
-                    level.destroyBlock(breakingBlock.pos,true);
+                    if (!level.isClientSide)
+                        level.destroyBlock(breakingBlock.pos, true);
                 }
-                else
-                    breakingBlock.increaseProgress();
+                breakingBlock.increaseProgress();
             }
         }
+        if(!this.breakingBlocks.isEmpty() && this.earthquakeTime < 20)
+            earthquakeTime++;
+        if(this.breakingBlocks.isEmpty() && this.earthquakeTime > 0)
+            earthquakeTime--;
     }
 
     private void collapseChunk(Level level, int x, int z)
@@ -167,7 +152,6 @@ public class Reservoir implements IFluidTank, IFluidHandler {
             BlockEntity blockEntity = level.getBlockEntity(mutableBlockPos);
             CompoundTag blockTag = blockEntity != null ? blockEntity.saveWithFullMetadata() : null;
 
-
             level.removeBlockEntity(mutableBlockPos);
             level.removeBlock(mutableBlockPos, false);
             mutableBlockPos.setY(height);
@@ -180,33 +164,68 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         }
     }
 
-    private void updateEarthQuake(Level level , int x, int z)
+    private void startEarthquake(Level level , ChunkPos chunkPos)
     {
-        int height = level.getMinBuildHeight();
-        BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos(x, height, z);
-        boolean isSolidBlock = false;
-        boolean firstFoundBlock = true;
-        while (height < level.getMaxBuildHeight())
-        {
-            mutableBlockPos.setY(height);
-            BlockState state = level.getBlockState(mutableBlockPos);
-            if(state.getBlock().defaultDestroyTime() < 0.0F){
-                height++;
-                continue;
+
+        BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+        for(int i = 0;i < 16;i++) {
+            for (int j = 0; j < 16; j++) {
+
+                int height = level.getMinBuildHeight();
+                mutableBlockPos.set(chunkPos.getBlockX(i), height, chunkPos.getBlockZ(j));
+                boolean isSolidBlock = false;
+                boolean firstFoundBlock = true;
+                while (height < level.getMaxBuildHeight()) {
+                    mutableBlockPos.setY(height);
+                    BlockState state = level.getBlockState(mutableBlockPos);
+                    if (state.getBlock().defaultDestroyTime() < 0.0F) {
+                        height++;
+                        continue;
+                    }
+                    if (firstFoundBlock) {
+                        isSolidBlock = !state.isAir();
+                        firstFoundBlock = false;
+                    }
+                    if (isSolidBlock == state.isAir() && level.random.nextFloat() <= 0.1) {
+                        int offsetY = state.isAir() ? -1 : 0;
+                        int progressSpeed = Mth.clamp((int) (state.getDestroySpeed(level, mutableBlockPos) / 50.0F * 15F), 1, 15);
+                        int delay = level.random.nextInt(40);
+                        this.breakingBlocks.add(new BreakingBlockReservoir(new BlockPos(mutableBlockPos).offset(0, offsetY, 0), 0, progressSpeed,delay));
+                        isSolidBlock = !state.isAir();
+                    }
+                    height++;
+                }
             }
-            if(firstFoundBlock)
-            {
-                isSolidBlock = !state.isAir();
-                firstFoundBlock = false;
-            }
-            if(isSolidBlock == state.isAir()) {
-                int offsetY = state.isAir() ? -1 : 0;
-                int progressSpeed = Mth.clamp((int)(state.getDestroySpeed(level, mutableBlockPos) / 50.0F * 15F), 1, 15);
-                this.breakingBlocks.add(new BreakingBlockReservoir(new BlockPos(mutableBlockPos).offset(0, offsetY, 0), 0, progressSpeed));
-                isSolidBlock = !state.isAir();
-            }
-            height++;
         }
+
+        PacketManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunk(chunkPos.x,chunkPos.z)), new PacketReservoirSync(chunkPos, this, PacketReservoirSync.Type.UPDATE));
+
+    }
+
+    @NotNull
+    @Override
+    public FluidStack getFluid() {
+        return this.outputTank.getFluid();
+    }
+
+    @Override
+    public int getFluidAmount() {
+        return this.inputTank.getFluidAmount() + this.outputTank.getFluidAmount();
+    }
+
+    @NotNull
+    public FluidStack getInput() {
+        return this.inputTank.getFluid();
+    }
+
+    @Override
+    public int getCapacity() {
+        return this.capacity;
+    }
+
+    @Override
+    public boolean isFluidValid(@NotNull FluidStack stack) {
+        return this.type.inputFluid.test(stack);
     }
 
     @Override
@@ -231,7 +250,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     }
 
     public int fill(FluidStack resource, IFluidHandler.FluidAction action){
-
+        updated();
         int space = this.getCapacity() - this.getFluidAmount();
         if(!resource.isEmpty())
             resource.setAmount(Math.min(resource.getAmount(), space));
@@ -243,6 +262,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     @NotNull
     @Override
     public FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
+        updated();
         if(!resource.isEmpty())
             resource.setAmount(Math.min(this.throughput, resource.getAmount()));
         return this.outputTank.drain(resource,action);
@@ -251,6 +271,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     @NotNull
     @Override
     public FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
+        updated();
         return this.outputTank.drain(Math.min(this.throughput, maxDrain),action);
     }
 
@@ -258,17 +279,39 @@ public class Reservoir implements IFluidTank, IFluidHandler {
 
     public CompoundTag save(CompoundTag tag)
     {
+        tag.putInt("chunkX", this.chunkPos.x);
+        tag.putInt("chunkZ", this.chunkPos.z);
         tag.putInt("capacity", this.capacity);
         tag.putInt("temperature", this.temperature);
         tag.putInt("throughput", this.throughput);
         tag.put("inputTank",this.inputTank.writeToNBT(new CompoundTag()));
         tag.put("outputTank",this.outputTank.writeToNBT(new CompoundTag()));
         tag.putInt("type", this.type.ordinal());
+
         return tag;
     }
 
+    public void writeUpdate(FriendlyByteBuf buf)
+    {
+        buf.writeCollection(this.breakingBlocks, (buf1, breakingBlockReservoir) -> {
+            buf1.writeBlockPos(breakingBlockReservoir.pos);
+            buf1.writeVarInt(breakingBlockReservoir.getProgressSteps());
+            buf1.writeVarInt(breakingBlockReservoir.getDelay());
+        });
+    }
 
+    public void readUpdate(FriendlyByteBuf buf)
+    {
+        this.breakingBlocks = buf.readList(buf1 -> new BreakingBlockReservoir(buf1.readBlockPos(), 0, buf1.readVarInt(), buf1.readVarInt()));
 
+        if(!this.breakingBlocks.isEmpty())
+            SoundManager.playEarthquake(this.chunkPos);
+
+    }
+
+    private void updated()
+    {
+    }
 
     public enum Type{
         STEAM(100, 100,Fluids.LAVA),

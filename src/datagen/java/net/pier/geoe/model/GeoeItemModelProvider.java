@@ -1,6 +1,7 @@
 package net.pier.geoe.model;
 
 import net.minecraft.data.DataGenerator;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -18,7 +19,9 @@ public class GeoeItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        GeoeBlocks.REGISTER.getEntries().stream().map(blockRegistryObject -> blockRegistryObject.get().getRegistryName()).filter(Objects::nonNull).forEach(resourceLocation -> {
+        GeoeBlocks.REGISTER.getEntries().stream().filter(block -> block.get().asItem() != Items.AIR)
+                .map(blockRegistryObject -> blockRegistryObject.get().getRegistryName())
+                .filter(Objects::nonNull).forEach(resourceLocation -> {
 
             String name = resourceLocation.getPath();
             getBuilder(name).parent(new ModelFile.UncheckedModelFile(modLoc("block/" + name)));

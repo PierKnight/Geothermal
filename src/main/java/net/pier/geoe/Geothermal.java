@@ -22,6 +22,7 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.PacketDistributor;
+import net.pier.geoe.advancement.triggers.AdvancementEvents;
 import net.pier.geoe.blockentity.multiblock.IMultiBlock;
 import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
 import net.pier.geoe.capability.CapabilityInitializer;
@@ -74,7 +75,7 @@ public class Geothermal
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-
+        MinecraftForge.EVENT_BUS.register(AdvancementEvents.class);
         MinecraftForge.EVENT_BUS.register(CapabilityInitializer.class);
 
 
@@ -91,6 +92,7 @@ public class Geothermal
 
     private void setup(final FMLCommonSetupEvent event)
     {
+        GeoeCriteriaTriggers.preInit();
         event.enqueueWork(() ->
         {
             // Some preinit code
