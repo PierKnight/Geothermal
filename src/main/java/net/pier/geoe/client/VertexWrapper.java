@@ -7,10 +7,14 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 public class VertexWrapper implements VertexConsumer {
 
     private VertexConsumer wrapper;
-    private final float alpha;
+    private float alpha;
 
     public VertexWrapper(VertexConsumer wrapper, float alpha) {
         this.wrapper = wrapper;
+        this.alpha = alpha;
+    }
+
+    public void setAlpha(float alpha) {
         this.alpha = alpha;
     }
 

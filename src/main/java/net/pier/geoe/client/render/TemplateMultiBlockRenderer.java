@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -62,6 +63,8 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
         TemplateMultiBlock templateMultiBlock = pBlockEntity.getMultiBlock();
         BlockState controllerState = level.getBlockState(pBlockEntity.getBlockPos());
 
+
+
         if(templateMultiBlock != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
 
                 if(pBlockEntity.isComplete())
@@ -76,16 +79,20 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
                     BlockPos offsetPos = templateMultiBlock.getOffsetPos(level, structureBlock.pos, direction);
                     if (state.getRenderShape() == RenderShape.MODEL) {
 
+                        boolean validHeldBlock = Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().is(state.getBlock().asItem());
+                        float scale = validHeldBlock ? 0.8F : 0.5F;
+                        float alpha = validHeldBlock ? 0.8F : 0.33F;
                         BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
                         if(!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
                             poseStack.pushPose();
                             poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
-                            poseStack.scale(0.5F,0.5F,0.5F);
-                            poseStack.translate(0.5F,0.5F,0.5F);
+                            poseStack.scale(scale, scale, scale);
+                            poseStack.translate(1.0F - scale, 1.0F - scale, 1.0F - scale);
                             RenderType type = RenderHelper.depthTranslucent();
                             BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
                             BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
                             blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
+                            blockVertexWrapper.setAlpha(alpha);
                             blockRenderDispatcher.getModelRenderer().tesselateBlock(fakeWorld,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
                             poseStack.popPose();
                         }
