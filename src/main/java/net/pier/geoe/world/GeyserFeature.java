@@ -1,41 +1,33 @@
 package net.pier.geoe.world;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.DensityFunctions;
+import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.SurfaceRules;
-import net.minecraft.world.level.levelgen.feature.*;
-import net.minecraft.world.level.levelgen.feature.configurations.BlockPileConfiguration;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.MineshaftConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
-import net.minecraft.world.level.levelgen.feature.stateproviders.SimpleStateProvider;
-import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
-import net.minecraft.world.level.material.Fluids;
+import net.pier.geoe.block.GeyserWaterBlock;
 import net.pier.geoe.capability.reservoir.Reservoir;
 import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.register.GeoeBlocks;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 
 public class GeyserFeature extends Feature<GeyserFeature.Configuration>
@@ -62,6 +54,9 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
         Random random = context.random();
         BlockPos.MutableBlockPos mutableBlockPos = origin.mutable();
 
+
+        if(random.nextFloat() <= 0.7)
+            return false;
 
         //LakeFeature
         int startY = mutableBlockPos.getY() - 1;
@@ -110,6 +105,8 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
         if(currentLayerIndex == -1)
             currentLayerIndex = 0;
 
+        BlockPos.MutableBlockPos lastPlacedWater = new BlockPos.MutableBlockPos();
+
         for (int y = maxHeight; y > worldgenlevel.getMinBuildHeight(); y--) {
             boolean inDepths = y <= minHeight;
             if(inDepths) {
@@ -130,10 +127,23 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
                     placingPos.set(placingX, y, placingZ);
                     if (ellipseRadius <= 1.0) {
 
-                        if(inDepths)
-                            safeSetBlock(worldgenlevel, placingPos, WATER, this::safeReplace);
-                        else
-                            safeSetBlock(worldgenlevel, placingPos, y < worldgenlevel.getSeaLevel() ? WATER : AIR, this::safeAirReplace);
+                        if(inDepths) {
+                            if(this.safeReplace(worldgenlevel.getBlockState(placingPos))) {
+                                worldgenlevel.setBlock(placingPos, WATER, 3);
+                                lastPlacedWater.set(placingPos);
+                            }
+                        }
+                        else {
+                            ChunkAccess chunk = worldgenlevel.getChunk(mutableBlockPos);
+
+                            BlockState fillerState = AIR;
+                            if(chunk.noiseChunk != null) {
+                                BlockState aquiferState = chunk.noiseChunk.aquifer().computeSubstance(new DensityFunction.SinglePointContext(placingPos.getX(),placingPos.getY(),placingPos.getZ()),-1);
+                                if(aquiferState != null)
+                                    fillerState = aquiferState;
+                            }
+                            safeSetBlock(worldgenlevel, placingPos, fillerState, this::safeAirReplace);
+                        }
 
                         for(Direction direction : Direction.values())
                         {
@@ -151,13 +161,6 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
                             else
                                 this.safeSetBlock(worldgenlevel, placingPos, GEYSERITE, (blockState -> !blockState.isAir() && safeAirReplace(blockState)));
                         }
-
-                        if(placingPos.getY() >= startY)
-                        {
-                            //safeSetBlock(worldgenlevel, placingPos.relative(Direction.UP), AIR, this::safeAirReplace);
-                            //safeSetBlock(worldgenlevel, placingPos.relative(Direction.UP,2), AIR, this::safeAirReplace);
-                            //markAboveForPostProcessing(worldgenlevel, placingPos);
-                        }
                     }
 
                 }
@@ -174,6 +177,11 @@ public class GeyserFeature extends Feature<GeyserFeature.Configuration>
 
         }
 
+        //THE LAST PLACED WATER SHOULD BE A GENERATOR
+        if(!lastPlacedWater.equals(BlockPos.ZERO)) {
+            worldgenlevel.setBlock(lastPlacedWater, WATER.setValue(GeyserWaterBlock.GENERATOR, true), 3);
+            worldgenlevel.scheduleTick(lastPlacedWater, GeoeBlocks.GEYSER_WATER.get(), 100);
+        }
 
         return true;
     }

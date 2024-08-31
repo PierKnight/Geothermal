@@ -1,28 +1,32 @@
 package net.pier.geoe.block;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BucketPickup;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -36,11 +40,14 @@ import java.util.Random;
 public class GeyserWaterBlock extends Block implements BucketPickup {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
-    public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 15);
+    public static final BooleanProperty GENERATOR = BooleanProperty.create("generator");
+
+
+
 
     public GeyserWaterBlock() {
         super(BlockBehaviour.Properties.of(Material.BUBBLE_COLUMN).noCollission().noDrops());
-        this.registerDefaultState(this.stateDefinition.any().setValue(ACTIVE, Boolean.FALSE).setValue(AGE, 0));
+        this.registerDefaultState(this.stateDefinition.any().setValue(ACTIVE, Boolean.FALSE).setValue(GENERATOR,false));
     }
 
     private static boolean canExistIn(BlockState pBlockState) {
@@ -49,7 +56,7 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
 
     @Override
     public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
-        int age = pState.getValue(AGE);
+
 
 
         if(pState.getValue(ACTIVE)) {
@@ -57,38 +64,32 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
             for (Direction direction : Direction.values()) {
                 BlockPos relativePos = pPos.relative(direction);
                 BlockState state = pLevel.getBlockState(relativePos);
-                if (state.is(this) && !state.getValue(ACTIVE)) {
+                if (direction != Direction.DOWN && state.is(this) && !state.getValue(ACTIVE)) {
                     pLevel.scheduleTick(relativePos, this, 1);
                 }
             }
         }
-        else
-        {
-            updateColumn(pLevel, pPos);
-        }
+        if(pState.getValue(GENERATOR))
+            pLevel.scheduleTick(pPos, this, 100);
     }
 
-    private void updateColumn(Level level, BlockPos pos)
-    {
-        BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
-        mutableBlockPos.set(pos.above());
-        while(canExistIn(level.getBlockState(mutableBlockPos)))
+    @Override
+    public void onBlockStateChange(LevelReader level, BlockPos pos, BlockState oldState, BlockState newState) {
+        if(newState.getValue(ACTIVE) && level instanceof ClientLevel clientLevel)
         {
-            level.setBlock(mutableBlockPos,this.defaultBlockState(), 3);
-            mutableBlockPos.move(Direction.UP);
+            for (int i = 0; i < 2; ++i) {
+                clientLevel.addParticle(ParticleTypes.CLOUD, (double) pos.getX() + clientLevel.random.nextDouble(), (double) (pos.getY() + 1), (double) pos.getZ() + clientLevel.random.nextDouble(),0,0,0);
+            }
         }
     }
 
     @Override
     public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, Random pRandom) {
         boolean newState = !pState.getValue(ACTIVE);
-        pLevel.setBlock(pPos, pState.setValue(ACTIVE, newState), 3);
 
-        if(newState) {
-            for (int i = 0; i < 2; ++i) {
-                pLevel.sendParticles(ParticleTypes.CLOUD, (double) pPos.getX() + pLevel.random.nextDouble(), (double) (pPos.getY() + 1), (double) pPos.getZ() + pLevel.random.nextDouble(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
-             }
-        }
+        if(pState.getValue(GENERATOR) && !newState)
+            pLevel.scheduleTick(pPos, this, 100);
+        pLevel.setBlock(pPos, pState.setValue(ACTIVE, newState), 3);
     }
 
     @Override
@@ -96,6 +97,8 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
         double d0 = pPos.getX() + pRandom.nextDouble();
         double d1 = pPos.getY() + pRandom.nextDouble();
         double d2 = pPos.getZ() + pRandom.nextDouble();
+
+
 
         if(pState.getValue(ACTIVE)) {
             //pLevel.addAlwaysVisibleParticle(ParticleTypes.CLOUD, d0 + 0.5D, d1, d2 + 0.5D, 0.0D, 0.04D, 0.0D);
@@ -108,10 +111,25 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
 
     }
 
+
+    @Override
+    public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+        if(pState.getValue(ACTIVE))
+        {
+            Vec3 vec3 = pEntity.getDeltaMovement();
+            double y = Math.min(1.8D, vec3.y + 0.3D);
+            pEntity.setDeltaMovement(vec3.x, y, vec3.z);
+        }
+
+        if(pEntity.tickCount % 10 == 0) {
+            pEntity.hurt(DamageSource.IN_FIRE, 3.0F);
+        }
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
         pBuilder.add(ACTIVE);
-        pBuilder.add(AGE);
+        pBuilder.add(GENERATOR);
     }
 
     @Override
