@@ -53,8 +53,6 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         this.type = type;
         this.temperature = temperature;
         this.chunkPos = chunkPos;
-
-        //Validate.inclusiveBetween(capacity, 10000,50000);
     }
 
     public Reservoir(CompoundTag tag) {
@@ -100,7 +98,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
             int fillAmount = this.outputTank.fill(new FluidStack(this.type.outputFluid, amount), IFluidHandler.FluidAction.EXECUTE);
             this.inputTank.drain(fillAmount, FluidAction.EXECUTE);
 
-            if (this.earthquakeTime == 0 && level.random.nextFloat() <= 1.0F / 1200F)
+            if (false && this.earthquakeTime == 0 && level.random.nextFloat() <= 1.0F / 1200F)
                 startEarthquake(level, chunkPos);
         }
 

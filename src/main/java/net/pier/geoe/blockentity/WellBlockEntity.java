@@ -10,9 +10,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
 import net.pier.geoe.blockentity.multiblock.TemplateMultiBlock;
-import net.pier.geoe.blockentity.valve.IValveHandler;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
-import net.pier.geoe.blockentity.valve.ValveFluidHandler;
 import net.pier.geoe.capability.reservoir.Reservoir;
 import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.gui.GeoeContainerMenu;
@@ -29,11 +27,11 @@ public abstract class WellBlockEntity extends MultiBlockControllerEntity<Templat
 
     private Reservoir reservoir;
 
-    private final LazyOptional<ValveFluidHandler> tankHandler;
+    private final LazyOptional<Reservoir> tankHandler;
 
     public WellBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, TemplateMultiBlock multiBlock, ValveBlockEntity.Flow flow) {
         super(pType, pPos, pBlockState, multiBlock);
-        this.tankHandler = LazyOptional.of(() -> new ValveFluidHandler(this::getReservoir, flow));
+        this.tankHandler = LazyOptional.of(this::getReservoir);
 
     }
 
@@ -50,8 +48,8 @@ public abstract class WellBlockEntity extends MultiBlockControllerEntity<Templat
 
 
     @Override
-    public LazyOptional<IValveHandler>[] getHandlers() {
-        return new LazyOptional[]{tankHandler,tankHandler};
+    public LazyOptional<Object>[] getHandlers() {
+        return new LazyOptional[]{this.tankHandler};
     }
 
     @Override
@@ -72,7 +70,14 @@ public abstract class WellBlockEntity extends MultiBlockControllerEntity<Templat
     public static class Production extends WellBlockEntity
     {
         public Production(BlockPos pPos, BlockState pBlockState) {
-            super(GeoeBlocks.PRODUCTION_WELL_BE.get(), pPos, pBlockState, GeoeMultiBlocks.EXTRACTOR.get(), ValveBlockEntity.Flow.OUTPUT);
+            super(GeoeBlocks.PRODUCTION_WELL_BE.get(), pPos, pBlockState, GeoeMultiBlocks.PRODUCTION_WELL.get(), ValveBlockEntity.Flow.OUTPUT);
+        }
+    }
+
+    public static class Injection extends WellBlockEntity
+    {
+        public Injection(BlockPos pPos, BlockState pBlockState) {
+            super(GeoeBlocks.INJECTION_WELL_BE.get(), pPos, pBlockState, GeoeMultiBlocks.INJECTION_WELL.get(), ValveBlockEntity.Flow.INPUT);
         }
     }
 

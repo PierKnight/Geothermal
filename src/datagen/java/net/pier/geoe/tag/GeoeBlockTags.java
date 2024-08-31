@@ -26,6 +26,7 @@ public class GeoeBlockTags extends BlockTagsProvider {
         TagsProvider.TagAppender<Block> tagAppender = tag(GeoeTags.Blocks.WRENCH_BREAKABLE)
                 .add(GeoeBlocks.PIPE.get())
                 .add(GeoeBlocks.PRODUCTION_WELL.get())
+                .add(GeoeBlocks.INJECTION_WELL.get())
                 .add(GeoeBlocks.GLASS.get())
                 .add(GeoeBlocks.FRAME.get());
 

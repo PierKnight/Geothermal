@@ -33,6 +33,7 @@ public class GeoeBlocks
     public static final DeferredRegister<Block> REGISTER = DeferredRegister.create(ForgeRegistries.BLOCKS, Geothermal.MODID);
 
     public static final RegistryObject<Block> PRODUCTION_WELL = registerBlock("production_well", () -> new ProductionWellBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
+    public static final RegistryObject<Block> INJECTION_WELL = registerBlock("injection_well", () -> new InjectionWellBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
     public static final RegistryObject<Block> PIPE = registerBlock("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)), true);
     public static final RegistryObject<Block> GLASS = registerBlock("glass", () -> new GlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(GeoeBlocks::never).isRedstoneConductor(GeoeBlocks::never).isSuffocating(GeoeBlocks::never).isViewBlocking(GeoeBlocks::never)), true);
     public static final RegistryObject<Block> FRAME = registerBlock("frame", () -> new BlockMachineFrame(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL)), true);
@@ -49,6 +50,7 @@ public class GeoeBlocks
     public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<WellBlockEntity.Production>> PRODUCTION_WELL_BE = BE_REGISTER.register("production_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Production::new, PRODUCTION_WELL.get()).build(null));
+    public static final RegistryObject<BlockEntityType<WellBlockEntity.Injection>> INJECTION_WELL_BE = BE_REGISTER.register("production_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Injection::new, INJECTION_WELL.get()).build(null));
 
 
     public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<Block>> VALVES_BLOCK = HashBasedTable.create();

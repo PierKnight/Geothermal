@@ -26,6 +26,7 @@ public class GeoeLootBlock implements Consumer<BiConsumer<ResourceLocation, Loot
 
         this.dropItSelf(GeoeBlocks.PIPE.get());
         this.dropItSelf(GeoeBlocks.PRODUCTION_WELL.get());
+        this.dropItSelf(GeoeBlocks.INJECTION_WELL.get());
         this.dropItSelf(GeoeBlocks.GLASS.get());
         this.dropItSelf(GeoeBlocks.FRAME.get());
         GeoeBlocks.VALVES_BLOCK.values().forEach(blockRegistryObject -> this.dropItSelf(blockRegistryObject.get()));

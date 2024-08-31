@@ -52,6 +52,7 @@ public class ModClient
     public static void registerRenders(final EntityRenderersEvent.RegisterRenderers event)
     {
         event.registerBlockEntityRenderer(GeoeBlocks.PRODUCTION_WELL_BE.get(), TemplateMultiBlockRenderer::new);
+        event.registerBlockEntityRenderer(GeoeBlocks.INJECTION_WELL_BE.get(), TemplateMultiBlockRenderer::new);
     }
 
 }
