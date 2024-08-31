@@ -50,7 +50,7 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
     }
 
 
-    public abstract LazyOptional<IValveHandler>[] getHandlers();
+    public abstract LazyOptional<Object>[] getHandlers();
 
 
     public boolean isComplete() {

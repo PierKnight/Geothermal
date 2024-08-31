@@ -8,7 +8,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.block.ValveBlock;
 import net.pier.geoe.blockentity.BaseBlockEntity;
 import net.pier.geoe.blockentity.multiblock.MultiBlockControllerEntity;
@@ -17,6 +19,7 @@ import net.pier.geoe.register.GeoeBlocks;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class ValveBlockEntity extends BaseBlockEntity
 {
@@ -27,6 +30,8 @@ public class ValveBlockEntity extends BaseBlockEntity
     private final Type type;
     private final Flow flow;
     private final Direction direction;
+
+    private LazyOptional<IValveHandler> valveHandlerLazyOptional;
 
     public ValveBlockEntity(BlockPos pPos, BlockState pBlockState, Type type, Flow flow)
     {
@@ -57,21 +62,7 @@ public class ValveBlockEntity extends BaseBlockEntity
 
         this.controllerPos = controllerPos;
         this.index = index;
-
-        if(controllerPos == null)
-            return;
-
-        var controller = getController();
-        if(controller == null)
-            throw new IllegalStateException(String.format("Invalid Controller Position %s in valve at %s", controllerPos, getBlockPos()));
-
-        var handlerLazyOptional = controller.getHandlers()[this.index];
-        if(handlerLazyOptional.resolve().isPresent()) {
-            Flow handlerFlow = handlerLazyOptional.resolve().get().getFlow();
-            if(handlerFlow != this.flow)
-                throw new IllegalStateException(String.format("Used %s Handler for valve of type %s", handlerFlow, this.flow));
-        }
-        
+        this.valveHandlerLazyOptional = null;
     }
 
     @Nullable
@@ -90,9 +81,19 @@ public class ValveBlockEntity extends BaseBlockEntity
         if(controller == null)
             return super.getCapability(capability, facing);
 
-        if(this.type.capability == capability && facing == this.direction)
-            return controller.getHandlers()[this.index].cast();
+        if(this.type.capability == capability && facing == this.direction) {
 
+            if(valveHandlerLazyOptional == null) {
+                var handlerLazyOptional = controller.getHandlers()[this.index];
+                if (handlerLazyOptional.resolve().isPresent()) {
+                    if (handlerLazyOptional.resolve().get() instanceof IFluidHandler fluidHandler)
+                        valveHandlerLazyOptional = LazyOptional.of(() -> new ValveFluidHandler(() -> fluidHandler, this.flow));
+                    else if (handlerLazyOptional.resolve().get() instanceof IEnergyStorage energyStorage)
+                        valveHandlerLazyOptional = LazyOptional.of(() -> new ValveEnergyHandler(energyStorage, this.flow));
+                }
+            }
+            return valveHandlerLazyOptional.cast();
+        }
         return super.getCapability(capability, facing);
     }
 
@@ -103,10 +104,14 @@ public class ValveBlockEntity extends BaseBlockEntity
 
         public final String name;
         private final Capability<?> capability;
+
+        private Function<Object, IValveHandler> wrapHandler;
+
         Type(String name, Capability<?> capability) {
             this.name = name;
             this.capability = capability;
         }
+
     }
 
     public enum Flow {
