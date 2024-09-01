@@ -1,19 +1,15 @@
 package net.pier.geoe;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -33,9 +29,7 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -57,12 +51,9 @@ public class Geothermal
         @Override
         public ItemStack makeIcon()
         {
-            return new ItemStack(Items.COPPER_INGOT);
+            return new ItemStack(GeoeBlocks.GEYSERITE.get());
         }
     };
-
-
-    public static final Map<ChunkPos, Map<BlockPos, FluidStack>> networks = new HashMap<>();
 
     public Geothermal()
     {
@@ -86,8 +77,6 @@ public class Geothermal
         GeoeParticleTypes.PARTICLE_TYPES.register(eventBus);
         GeoeSounds.REGISTER.register(eventBus);
         GeoeMenuTypes.MENU_TYPES.register(eventBus);
-
-
     }
 
     private void setup(final FMLCommonSetupEvent event)

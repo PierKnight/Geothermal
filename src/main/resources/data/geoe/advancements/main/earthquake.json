@@ -9,7 +9,7 @@
         "translate": "advancement.geoe.main_root.desc"
       }
     ],
-    "background": "geoe:frame",
+    "background": "geoe:textures/block/frame.png",
     "frame": "challenge",
     "show_toast": true,
     "announce_to_chat": true,

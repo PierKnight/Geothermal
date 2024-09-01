@@ -31,10 +31,16 @@ public class ReservoirCapability implements INBTSerializable<Tag>
     });
 
     private final Level level;
+    private final WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(0L));
+    private NormalNoise normalNoise = null;
 
     public ReservoirCapability(Level level)
     {
         this.level = level;
+        if(level instanceof ServerLevel serverLevel) {
+            this.worldgenrandom.setSeed(serverLevel.getSeed());
+            this.normalNoise = NormalNoise.create(worldgenrandom, new NormalNoise.NoiseParameters(-7, 1.0));
+        }
     }
 
     private final Map<ChunkPos, Reservoir> map = new HashMap<>();
@@ -44,20 +50,14 @@ public class ReservoirCapability implements INBTSerializable<Tag>
 
 
 
-    public Reservoir getReservoirWorldInfo(ChunkPos chunkPos)
+    public synchronized Reservoir getReservoirWorldInfo(ChunkPos chunkPos)
     {
         if(this.level instanceof ServerLevel serverLevel) {
 
-
-            WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(0L));
             worldgenrandom.setDecorationSeed(serverLevel.getSeed(), chunkPos.x, chunkPos.z);
 
-
-            NormalNoise normalNoise = NormalNoise.create(worldgenrandom,new NormalNoise.NoiseParameters(-7,1.0));
-            
-            normalNoise.getValue(chunkPos.x,0,chunkPos.z);
             int capacity = 10000 + worldgenrandom.nextInt(10000);
-            int temperature = 1 + worldgenrandom.nextInt(4);
+            int temperature = (int) ((normalNoise.getValue(chunkPos.x,0,chunkPos.z) + 1.0F) * 100);
             Reservoir.Type type = Reservoir.Type.values()[worldgenrandom.nextInt(Reservoir.Type.values().length)];
             int throughput = 100 + worldgenrandom.nextInt(1000);
             return new Reservoir(chunkPos, capacity,throughput,temperature,type);
@@ -65,7 +65,7 @@ public class ReservoirCapability implements INBTSerializable<Tag>
         return null;
     }
 
-    public Reservoir getReservoir(ChunkPos chunkPos)
+    public synchronized Reservoir getReservoir(ChunkPos chunkPos)
     {
         Reservoir reservoir = this.map.get(chunkPos);
         if(reservoir == null) {
