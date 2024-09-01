@@ -13,7 +13,7 @@ public class InjectionWellBlock extends ControllerBlock<WellBlockEntity>
 
     @Override
     public WellBlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new WellBlockEntity.Production(blockPos,blockState);
+        return new WellBlockEntity.Injection(blockPos,blockState);
     }
 
 }

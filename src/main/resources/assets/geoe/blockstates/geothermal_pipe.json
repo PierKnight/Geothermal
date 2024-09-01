@@ -5,7 +5,7 @@
         "north": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side"
+        "model": "geoe:block/pipe/geothermal_pipe_input"
       }
     },
     {
@@ -13,7 +13,7 @@
         "north": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side"
+        "model": "geoe:block/pipe/geothermal_pipe_output"
       }
     },
     {
@@ -21,7 +21,7 @@
         "north": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side"
+        "model": "geoe:block/pipe/geothermal_pipe_side"
       }
     },
     {
@@ -29,9 +29,8 @@
         "east": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_input",
+        "y": 90
       }
     },
     {
@@ -39,9 +38,8 @@
         "east": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_output",
+        "y": 90
       }
     },
     {
@@ -49,9 +47,8 @@
         "east": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_side",
+        "y": 90
       }
     },
     {
@@ -59,9 +56,8 @@
         "south": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 180,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_input",
+        "y": 180
       }
     },
     {
@@ -69,9 +65,8 @@
         "south": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 180,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_output",
+        "y": 180
       }
     },
     {
@@ -79,9 +74,8 @@
         "south": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 180,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_side",
+        "y": 180
       }
     },
     {
@@ -89,9 +83,8 @@
         "west": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_input",
+        "y": 270
       }
     },
     {
@@ -99,9 +92,8 @@
         "west": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_output",
+        "y": 270
       }
     },
     {
@@ -109,9 +101,8 @@
         "west": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "y": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_side",
+        "y": 270
       }
     },
     {
@@ -119,9 +110,8 @@
         "up": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_input",
+        "x": 270
       }
     },
     {
@@ -129,9 +119,8 @@
         "up": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_output",
+        "x": 270
       }
     },
     {
@@ -139,9 +128,8 @@
         "up": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 270,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_side",
+        "x": 270
       }
     },
     {
@@ -149,9 +137,8 @@
         "down": "input"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_input",
+        "x": 90
       }
     },
     {
@@ -159,9 +146,8 @@
         "down": "output"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_output",
+        "x": 90
       }
     },
     {
@@ -169,9 +155,8 @@
         "down": "pipe"
       },
       "apply": {
-        "model": "geoe:block/geothermal_pipe_side",
-        "x": 90,
-        "uvlock": true
+        "model": "geoe:block/pipe/geothermal_pipe_side",
+        "x": 90
       }
     },
     {
@@ -180,17 +165,8 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2
-        },
-        {
-          "model": "geoe:block/geothermal_pipe"
-        },
-        {
-          "model": "geoe:block/geothermal_pipe"
-        },
-        {
-          "model": "geoe:block/geothermal_pipe"
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
+          "uvlock": true
         }
       ]
     },
@@ -200,23 +176,7 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2,
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
           "y": 90,
           "uvlock": true
         }
@@ -228,23 +188,7 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 180,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 180,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2,
-          "y": 180,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
           "y": 180,
           "uvlock": true
         }
@@ -256,23 +200,7 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2,
-          "y": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "y": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
           "y": 270,
           "uvlock": true
         }
@@ -284,23 +212,7 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2,
-          "x": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "x": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "x": 270,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
           "x": 270,
           "uvlock": true
         }
@@ -312,23 +224,7 @@
       },
       "apply": [
         {
-          "model": "geoe:block/geothermal_pipe",
-          "x": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "x": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "x": 90,
-          "uvlock": true
-        },
-        {
-          "model": "geoe:block/geothermal_pipe",
-          "weight": 2,
+          "model": "geoe:block/pipe/geothermal_pipe_noside",
           "x": 90,
           "uvlock": true
         }

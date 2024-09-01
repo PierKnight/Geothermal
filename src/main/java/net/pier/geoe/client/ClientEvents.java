@@ -20,18 +20,16 @@ public class ClientEvents {
 
 
 
-    public static float cameraShakeTime = 0;
-
-
 
     @SubscribeEvent
     public static void camera(final EntityViewRenderEvent.CameraSetup event)
     {
 
         ClientLevel clientLevel = Minecraft.getInstance().level;
+        Player player = Minecraft.getInstance().player;
         Camera camera = event.getCamera();
 
-        if(clientLevel != null && !Minecraft.getInstance().isPaused())
+        if(clientLevel != null && !Minecraft.getInstance().isPaused() && (player == null || player.isOnGround()))
         {
             float nearestEarthquake = 0F;
             double chunkDistance = Float.MAX_VALUE;

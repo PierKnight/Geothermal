@@ -80,14 +80,16 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
                     if (state.getRenderShape() == RenderShape.MODEL) {
 
                         boolean validHeldBlock = Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().is(state.getBlock().asItem());
-                        float scale = validHeldBlock ? 0.8F : 0.5F;
+                        float scale = validHeldBlock ? 0.7F : 0.5F;
                         float alpha = validHeldBlock ? 0.8F : 0.33F;
                         BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
                         if(!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
                             poseStack.pushPose();
                             poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
+                            float shift = (1.0F - scale) * 0.5F;
+                            poseStack.translate(shift,shift,shift);
                             poseStack.scale(scale, scale, scale);
-                            poseStack.translate(1.0F - scale, 1.0F - scale, 1.0F - scale);
+
                             RenderType type = RenderHelper.depthTranslucent();
                             BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
                             BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);

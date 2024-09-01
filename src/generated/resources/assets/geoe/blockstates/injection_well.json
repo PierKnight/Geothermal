@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "complete=false,facing=north": {
+      "model": "geoe:block/injection_well"
+    },
+    "complete=true,facing=north": {
+      "model": "geoe:block/injection_well_complete"
+    },
+    "complete=false,facing=south": {
+      "model": "geoe:block/injection_well",
+      "y": 180
+    },
+    "complete=true,facing=south": {
+      "model": "geoe:block/injection_well_complete",
+      "y": 180
+    },
+    "complete=false,facing=west": {
+      "model": "geoe:block/injection_well",
+      "y": 90
+    },
+    "complete=true,facing=west": {
+      "model": "geoe:block/injection_well_complete",
+      "y": 90
+    },
+    "complete=false,facing=east": {
+      "model": "geoe:block/injection_well",
+      "y": -90
+    },
+    "complete=true,facing=east": {
+      "model": "geoe:block/injection_well_complete",
+      "y": -90
+    }
+  }
+}

@@ -3,6 +3,7 @@
   "values": [
     "geoe:geothermal_pipe",
     "geoe:production_well",
+    "geoe:injection_well",
     "geoe:glass",
     "geoe:frame",
     "geoe:fluid_input_valve",

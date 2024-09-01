@@ -18,6 +18,15 @@
           ]
         },
         {
+          "block": "geoe:injection_well",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
           "block": "geoe:frame",
           "predicate": [
             {

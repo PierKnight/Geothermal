@@ -3,6 +3,7 @@ ec81449cef1ea5860852f1ff80e1ee8eaa54865d assets/geoe/blockstates/energy_output_v
 671abb96116fca358b1856cdea5a88897eeb5a87 assets/geoe/blockstates/fluid_input_valve.json
 31dabab0ba2c191668ad5bfb911954e675d461c1 assets/geoe/blockstates/fluid_output_valve.json
 f70d6f5c7d5ae73d9893943bcf4952ae75684bdc assets/geoe/blockstates/geyserite.json
+530b9286f2ae31cda5014a189587cc80eba39744 assets/geoe/blockstates/injection_well.json
 0fb174f9df8867e6323c70041f3fc57410a2e13d assets/geoe/blockstates/production_well.json
 80ff718e01d40a21f894655460b6f07680dd6dc7 assets/geoe/models/block/geyserite.json
 0d6e8270c1704aab7d9add9dfcb8ae2b4e279710 assets/geoe/models/item/energy_input_valve.json
@@ -13,8 +14,9 @@ c816e7a1697238386590b7ac6a2ce0725d75342f assets/geoe/models/item/frame.json
 117fe0c4545927c9862be351dab2e62341f99ef4 assets/geoe/models/item/geothermal_pipe.json
 fa725b0136d1d0da6a6c0ad17f1fdd30632236dc assets/geoe/models/item/geyserite.json
 b22d1819f159849f5ef070ea93973da6c0114a75 assets/geoe/models/item/glass.json
+1dd4980d4b4bbe0ad7eec816f9d7dc4d9ab113de assets/geoe/models/item/injection_well.json
 396509ff36f508ffa322bb527c2b2a912eecf5d9 assets/geoe/models/item/production_well.json
-f5cb657cea7575a476b193732e308723acc137a1 assets/geoe/textures/block/frame.png.mcmeta
+0af1fecf3b8d9a522f41b6c9513c47ecb513d071 assets/geoe/textures/block/frame.png.mcmeta
 a290aa5c718e90c349d9534258b21a9e3738a1e4 assets/geoe/textures/block/glass.png.mcmeta
 b00ecb05dc2f1f088f41f2dde35cdcba801f0fee data/forge/tags/items/tools/wrench.json
 64970406faf55a6e8077c8314b2d48adddbbc5e1 data/geoe/loot_tables/blocks/energy_input_valve.json
@@ -24,5 +26,6 @@ bb2be2d784352cf85447d3c7f44e745d801c3e01 data/geoe/loot_tables/blocks/fluid_outp
 04aac376b1c69ede808330d49dce6a0ab6fe56e9 data/geoe/loot_tables/blocks/frame.json
 98b852f8cd240818118825654c60627151d3a861 data/geoe/loot_tables/blocks/geothermal_pipe.json
 35f7e840719f218bb2951f86f4301e61d88e3921 data/geoe/loot_tables/blocks/glass.json
+bcddefe3df14bceb40ac458e04d50fa08ba3e48d data/geoe/loot_tables/blocks/injection_well.json
 11d8e3627e99e6f945e31fa38a96c540613ba6a2 data/geoe/loot_tables/blocks/production_well.json
-da5e6c72f5b7ef6713281c1718dddad203de168f data/geoe/tags/blocks/mineable/wrench.json
+0f30cb3032009254d003c993aafbfd47947f4232 data/geoe/tags/blocks/mineable/wrench.json

@@ -50,7 +50,7 @@ public class GeoeBlocks
     public static final RegistryObject<BlockEntityType<PipeBlockEntity>> PIPE_BE = BE_REGISTER.register("pipe_type", () -> BlockEntityType.Builder.of(PipeBlockEntity::new, PIPE.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<WellBlockEntity.Production>> PRODUCTION_WELL_BE = BE_REGISTER.register("production_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Production::new, PRODUCTION_WELL.get()).build(null));
-    public static final RegistryObject<BlockEntityType<WellBlockEntity.Injection>> INJECTION_WELL_BE = BE_REGISTER.register("production_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Injection::new, INJECTION_WELL.get()).build(null));
+    public static final RegistryObject<BlockEntityType<WellBlockEntity.Injection>> INJECTION_WELL_BE = BE_REGISTER.register("injection_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Injection::new, INJECTION_WELL.get()).build(null));
 
 
     public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<Block>> VALVES_BLOCK = HashBasedTable.create();

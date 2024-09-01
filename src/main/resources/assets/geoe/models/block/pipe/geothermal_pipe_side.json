@@ -1,0 +1,21 @@
+{
+	"textures": {
+		"1": "geoe:block/geothermal_pipe_side",
+		"particle": "geoe:block/frame"
+	},
+	"elements": [
+		{
+			"name": "side",
+			"from": [4, 4, 0],
+			"to": [12, 12, 4],
+			"rotation": {"angle": 0, "axis": "y", "origin": [5, 4, 1]},
+			"faces": {
+				"north": {"uv": [0, 0, 8, 8], "texture": "#1"},
+				"east": {"uv": [8, 0, 12, 8], "texture": "#1"},
+				"west": {"uv": [8, 0, 12, 8], "texture": "#1"},
+				"up": {"uv": [0, 8, 8, 12], "texture": "#1"},
+				"down": {"uv": [0, 8, 8, 12], "texture": "#1"}
+			}
+		}
+	]
+}
