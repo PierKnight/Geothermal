@@ -60,8 +60,8 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
 
                     //BlockState
                     getVariantBuilder(controllerBlock)
-                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, false).modelForState().rotationY((int) -direction.toYRot() + 180).modelFile(incompleteModelFile).addModel()
-                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, true).modelForState().rotationY((int) -direction.toYRot() + 180).modelFile(completeModelFile).addModel();
+                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, false).modelForState().rotationY((int) direction.toYRot()).modelFile(incompleteModelFile).addModel()
+                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, true).modelForState().rotationY((int) direction.toYRot()).modelFile(completeModelFile).addModel();
 
 
                 }

@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuConstructor;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,7 +23,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.NetworkHooks;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.BaseBlockEntity;
-import net.pier.geoe.blockentity.valve.IValveHandler;
+import net.pier.geoe.capability.reservoir.ReservoirCapability;
 import net.pier.geoe.gui.GeoeContainerMenu;
 import net.pier.geoe.gui.MenuContext;
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +76,13 @@ public abstract class MultiBlockControllerEntity<T extends IMultiBlock> extends 
 
     public InteractionResult use(ServerPlayer serverPlayer)
     {
+
+        if(level instanceof ServerLevel serverLevel) {
+            ChunkPos chunkPos = new ChunkPos(this.getBlockPos());
+            serverLevel.getCapability(ReservoirCapability.CAPABILITY).ifPresent(a -> {
+                System.out.println(a.reservoirSampler.getSample(serverLevel, chunkPos.x,chunkPos.z).depth());
+            });
+        }
         if(!this.isComplete)
             return InteractionResult.FAIL;
         NetworkHooks.openGui(serverPlayer, new SimpleMenuProvider(new MenuConstructor() {

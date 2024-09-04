@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -74,11 +75,23 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
     }
 
     @Override
-    public void onBlockStateChange(LevelReader level, BlockPos pos, BlockState oldState, BlockState newState) {
-        if(newState.getValue(ACTIVE) && level instanceof ClientLevel clientLevel)
+    public void onBlockStateChange(LevelReader levelReader, BlockPos pos, BlockState oldState, BlockState newState) {
+        if(newState.getValue(ACTIVE))
         {
-            for (int i = 0; i < 2; ++i) {
-                clientLevel.addParticle(ParticleTypes.CLOUD, (double) pos.getX() + clientLevel.random.nextDouble(), (double) (pos.getY() + 1), (double) pos.getZ() + clientLevel.random.nextDouble(),0,0,0);
+            boolean isBelowOpen = levelReader.getBlockState(pos.below()).isAir();
+            if(levelReader instanceof ClientLevel clientLevel) {
+                for (int i = 0; i < 2; ++i)
+                    clientLevel.addParticle(ParticleTypes.CLOUD, (double) pos.getX() + clientLevel.random.nextDouble(), (double) (pos.getY() + 1), (double) pos.getZ() + clientLevel.random.nextDouble(), 0, 0, 0);
+                if(isBelowOpen)
+                    for (int i = 0; i < 2; ++i)
+                        clientLevel.addParticle(ParticleTypes.CLOUD, (double) pos.getX() + clientLevel.random.nextDouble(), (double) (pos.getY() + 1), (double) pos.getZ() + clientLevel.random.nextDouble(), 0, 0.4D, 0);
+
+            }
+            if(isBelowOpen && levelReader instanceof Level level)
+            {
+                for (Entity entity : level.getEntities(null, new AABB(pos, pos.below(5)))) {
+                    entity.setDeltaMovement(0,5,0);
+                }
             }
         }
     }

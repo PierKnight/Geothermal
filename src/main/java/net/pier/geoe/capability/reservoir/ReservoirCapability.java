@@ -1,15 +1,12 @@
 package net.pier.geoe.capability.reservoir;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.WorldgenRandom;
-import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
-import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -31,16 +28,14 @@ public class ReservoirCapability implements INBTSerializable<Tag>
     });
 
     private final Level level;
-    private final WorldgenRandom worldgenrandom = new WorldgenRandom(new XoroshiroRandomSource(0L));
-    private NormalNoise normalNoise = null;
+
+    public ReservoirSampler reservoirSampler = null;
 
     public ReservoirCapability(Level level)
     {
         this.level = level;
-        if(level instanceof ServerLevel serverLevel) {
-            this.worldgenrandom.setSeed(serverLevel.getSeed());
-            this.normalNoise = NormalNoise.create(worldgenrandom, new NormalNoise.NoiseParameters(-7, 1.0));
-        }
+        if(level instanceof ServerLevel serverLevel)
+            this.reservoirSampler = new ReservoirSampler(serverLevel);
     }
 
     private final Map<ChunkPos, Reservoir> map = new HashMap<>();
@@ -54,13 +49,10 @@ public class ReservoirCapability implements INBTSerializable<Tag>
     {
         if(this.level instanceof ServerLevel serverLevel) {
 
-            worldgenrandom.setDecorationSeed(serverLevel.getSeed(), chunkPos.x, chunkPos.z);
-
-            int capacity = 10000 + worldgenrandom.nextInt(10000);
-            int temperature = (int) ((normalNoise.getValue(chunkPos.x,0,chunkPos.z) + 1.0F) * 100);
-            Reservoir.Type type = Reservoir.Type.values()[worldgenrandom.nextInt(Reservoir.Type.values().length)];
-            int throughput = 100 + worldgenrandom.nextInt(1000);
-            return new Reservoir(chunkPos, capacity,throughput,temperature,type);
+            ReservoirSampler.Sample sample = this.reservoirSampler.getSample(serverLevel, chunkPos.x, chunkPos.z);
+            int capacity = (int) Mth.clampedMap(sample.size(),-1.0F, 1.0F,500F,100000F);
+            int heat = (int) Mth.clampedMap(sample.size(),-1.0F, 1.0F,0.5F,1.5F);
+            return new Reservoir(chunkPos, capacity, heat, sample.type());
         }
         return null;
     }
@@ -75,7 +67,7 @@ public class ReservoirCapability implements INBTSerializable<Tag>
                 reservoir = getReservoirWorldInfo(chunkPos);
             }
             else
-                reservoir = new Reservoir(chunkPos, 0,0,0, Reservoir.Type.GEOTHERMAL);
+                reservoir = new Reservoir(chunkPos, 0,0, Reservoir.Type.GEOTHERMAL);
             this.map.put(chunkPos, reservoir);
         }
         return reservoir;

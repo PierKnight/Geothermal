@@ -68,6 +68,8 @@ public class Geothermal
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(AdvancementEvents.class);
         MinecraftForge.EVENT_BUS.register(CapabilityInitializer.class);
+        MinecraftForge.EVENT_BUS.register(GeoeVillager.class);
+
 
 
         GeoeFeatures.FEATURES.register(eventBus);
@@ -77,10 +79,14 @@ public class Geothermal
         GeoeParticleTypes.PARTICLE_TYPES.register(eventBus);
         GeoeSounds.REGISTER.register(eventBus);
         GeoeMenuTypes.MENU_TYPES.register(eventBus);
+        GeoeVillager.POI_TYPES.register(eventBus);
+        GeoeVillager.PROFESSIONS.register(eventBus);
+
     }
 
     private void setup(final FMLCommonSetupEvent event)
     {
+
         GeoeCriteriaTriggers.preInit();
         event.enqueueWork(() ->
         {

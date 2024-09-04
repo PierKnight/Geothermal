@@ -21,7 +21,6 @@ import net.pier.geoe.client.sound.SoundManager;
 import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.network.PacketReservoirSync;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -36,8 +35,8 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     private final FluidTank outputTank;
 
     private final int capacity;
-    private final int throughput;
-    private final int temperature;
+    private static final int throughput = 100;
+    private final int heatFactor;
     private final Type type;
 
     //EarthQuake
@@ -45,13 +44,12 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     private int earthquakeTime = 0;
 
 
-    public Reservoir(ChunkPos chunkPos, int capacity, int throughput,int temperature,Type type) {
+    public Reservoir(ChunkPos chunkPos, int capacity,int heatFactor,Type type) {
         this.inputTank = new FluidTank(capacity, type.inputFluid);
         this.outputTank = new FluidTank(capacity);
         this.capacity = capacity;
-        this.throughput = throughput;
         this.type = type;
-        this.temperature = temperature;
+        this.heatFactor = heatFactor;
         this.chunkPos = chunkPos;
     }
 
@@ -61,15 +59,14 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         this.type = Type.values()[tag.getInt("type")];
         this.inputTank = new FluidTank(capacity, type.inputFluid).readFromNBT(tag.getCompound("inputTank"));
         this.outputTank = new FluidTank(capacity).readFromNBT(tag.getCompound("outputTank"));
-        this.throughput = tag.getInt("throughput");
-        this.temperature = tag.getInt("temperature");
+        this.heatFactor = tag.getInt("heatFactor");
     }
 
 
 
 
-    public int getTemperature() {
-        return temperature;
+    public int getHeatFactor() {
+        return heatFactor;
     }
 
     public int getThroughput() {
@@ -262,7 +259,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     public FluidStack drain(FluidStack resource, IFluidHandler.FluidAction action) {
         updated();
         if(!resource.isEmpty())
-            resource.setAmount(Math.min(this.throughput, resource.getAmount()));
+            resource.setAmount(Math.min(throughput, resource.getAmount()));
         return this.outputTank.drain(resource,action);
     }
 
@@ -270,7 +267,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
     @Override
     public FluidStack drain(int maxDrain, IFluidHandler.FluidAction action) {
         updated();
-        return this.outputTank.drain(Math.min(this.throughput, maxDrain),action);
+        return this.outputTank.drain(Math.min(throughput, maxDrain),action);
     }
 
 
@@ -280,8 +277,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         tag.putInt("chunkX", this.chunkPos.x);
         tag.putInt("chunkZ", this.chunkPos.z);
         tag.putInt("capacity", this.capacity);
-        tag.putInt("temperature", this.temperature);
-        tag.putInt("throughput", this.throughput);
+        tag.putInt("heatFactor", this.heatFactor);
         tag.put("inputTank",this.inputTank.writeToNBT(new CompoundTag()));
         tag.put("outputTank",this.outputTank.writeToNBT(new CompoundTag()));
         tag.putInt("type", this.type.ordinal());

@@ -18,7 +18,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.PacketDistributor;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.capability.pipe.WorldNetworkCapability;
@@ -30,48 +29,40 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public class CapabilityInitializer
-{
+public class CapabilityInitializer {
 
     @SubscribeEvent
-    public static void capabilityAttachLevel(final AttachCapabilitiesEvent<Level> event)
-    {
+    public static void capabilityAttachLevel(final AttachCapabilitiesEvent<Level> event) {
         attachCapability("pipe_network", event, WorldNetworkCapability::new, WorldNetworkCapability.CAPABILITY);
         attachCapability("geo_reservoir", event, () -> new ReservoirCapability(event.getObject()), ReservoirCapability.CAPABILITY);
     }
 
     @SubscribeEvent
-    public static void capabilityAttachChunk(final AttachCapabilitiesEvent<LevelChunk> event)
-    {
+    public static void capabilityAttachChunk(final AttachCapabilitiesEvent<LevelChunk> event) {
 
     }
 
     @SubscribeEvent
-    public static void chunkLoad(final ChunkEvent.Load event)
-    {
-        if(event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
+    public static void chunkLoad(final ChunkEvent.Load event) {
+        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
             levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.appendTickingReservoir(levelChunk.getPos()));
     }
 
     @SubscribeEvent
-    public static void chunkUnload(final ChunkEvent.Unload event)
-    {
-        if(event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
+    public static void chunkUnload(final ChunkEvent.Unload event) {
+        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
             levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.tickingReservoirs.remove(levelChunk.getPos()));
     }
 
 
-
-    public static void registerCapabilities(RegisterCapabilitiesEvent event)
-    {
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.register(WorldNetworkCapability.class);
         event.register(ReservoirCapability.class);
     }
 
     @SubscribeEvent
-    public static void updateWorld(final TickEvent.WorldTickEvent event)
-    {
-        if(event.phase == TickEvent.Phase.START)
+    public static void updateWorld(final TickEvent.WorldTickEvent event) {
+        if (event.phase == TickEvent.Phase.START)
             return;
 
         LazyOptional<WorldNetworkCapability> lazeCap = event.world.getCapability(WorldNetworkCapability.CAPABILITY);
@@ -82,11 +73,10 @@ public class CapabilityInitializer
     }
 
     @SubscribeEvent
-    public static void updateWorldClinet(final TickEvent.ClientTickEvent event)
-    {
+    public static void updateWorldClinet(final TickEvent.ClientTickEvent event) {
         Level level = Minecraft.getInstance().level;
 
-        if(event.phase == TickEvent.Phase.START || level == null || Minecraft.getInstance().isPaused())
+        if (event.phase == TickEvent.Phase.START || level == null || Minecraft.getInstance().isPaused())
             return;
 
         LazyOptional<ReservoirCapability> reservoirCapabilityLazy = level.getCapability(ReservoirCapability.CAPABILITY);
@@ -94,49 +84,51 @@ public class CapabilityInitializer
     }
 
     @SubscribeEvent
-    public static void chunkWatch(final ChunkWatchEvent.Watch event)
-    {
+    public static void chunkWatch(final ChunkWatchEvent.Watch event) {
         LazyOptional<ReservoirCapability> reservoirCapabilityLazy = event.getWorld().getCapability(ReservoirCapability.CAPABILITY);
         reservoirCapabilityLazy.ifPresent(cap -> {
-            if(cap.isReservoirDirty(event.getPos()))
+            if (cap.isReservoirDirty(event.getPos()))
                 PacketManager.INSTANCE.send(PacketDistributor.PLAYER.with(event::getPlayer), new PacketReservoirSync(event.getPos(), cap.getReservoir(event.getPos()), PacketReservoirSync.Type.CHUNK_TRACK));
         });
     }
+
     @SubscribeEvent
-    public static void chunkUnWatch(final ChunkWatchEvent.UnWatch event)
-    {
+    public static void chunkUnWatch(final ChunkWatchEvent.UnWatch event) {
         LazyOptional<ReservoirCapability> reservoirCapabilityLazy = event.getWorld().getCapability(ReservoirCapability.CAPABILITY);
         reservoirCapabilityLazy.ifPresent(cap -> {
-            if(cap.isReservoirDirty(event.getPos()))
+            if (cap.isReservoirDirty(event.getPos()))
                 PacketManager.INSTANCE.send(PacketDistributor.PLAYER.with(event::getPlayer), new PacketReservoirSync(event.getPos(), cap.getReservoir(event.getPos()), PacketReservoirSync.Type.CHUNK_UNTRACK));
         });
     }
 
-    private static <T extends INBTSerializable<Tag>> void attachCapability(String name, AttachCapabilitiesEvent<?> event, Supplier<T> supplier, Capability<T> c)
-    {
+    @Nullable
+    public static <T> T getCap(Level level, Capability<T> capability) {
+        var e = level.getCapability(capability);
+        if(e.isPresent() && e.resolve().isPresent())
+            return e.resolve().get();
+        return null;
+    }
+
+    private static <T extends INBTSerializable<Tag>> void attachCapability(String name, AttachCapabilitiesEvent<?> event, Supplier<T> supplier, Capability<T> c) {
         T capability = supplier.get();
         LazyOptional<T> mixtureOptional = LazyOptional.of(() -> capability);
 
-        ICapabilityProvider provider = new ICapabilitySerializable<>()
-        {
+        ICapabilityProvider provider = new ICapabilitySerializable<>() {
             @NotNull
             @Override
-            public <A> LazyOptional<A> getCapability(@NotNull Capability<A> cap, @Nullable Direction side)
-            {
-                if(cap == c)
+            public <A> LazyOptional<A> getCapability(@NotNull Capability<A> cap, @Nullable Direction side) {
+                if (cap == c)
                     return mixtureOptional.cast();
                 return LazyOptional.empty();
             }
 
             @Override
-            public Tag serializeNBT()
-            {
+            public Tag serializeNBT() {
                 return capability.serializeNBT();
             }
 
             @Override
-            public void deserializeNBT(Tag nbt)
-            {
+            public void deserializeNBT(Tag nbt) {
                 capability.deserializeNBT(nbt);
             }
         };
