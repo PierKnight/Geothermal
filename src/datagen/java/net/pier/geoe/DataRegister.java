@@ -28,6 +28,7 @@ public class DataRegister {
         gen.addProvider(new GeoeItemModelProvider(gen, exHelper));
         gen.addProvider(new GeoeBlockStateProvider(gen, exHelper));
         gen.addProvider(new CTMTextureProvider(gen));
+        gen.addProvider(new GeoeAdvancementProvider(gen, exHelper));
     }
 
 }

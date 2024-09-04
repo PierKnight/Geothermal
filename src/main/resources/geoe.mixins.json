@@ -3,6 +3,8 @@
   "minVersion": "0.8",
   "package": "net.pier.geoe.mixin",
   "mixins": [
+    "MerchantContainerMixing",
+    "MerchantOfferMixin"
   ],
   "client": [
     "BlockBreakingMixin"

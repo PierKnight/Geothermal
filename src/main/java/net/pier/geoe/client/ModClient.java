@@ -1,11 +1,15 @@
 package net.pier.geoe.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,7 +21,9 @@ import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.client.particle.GasParticle;
 import net.pier.geoe.client.render.TemplateMultiBlockRenderer;
 import net.pier.geoe.gui.WellScreen;
+import net.pier.geoe.item.ReservoirMap;
 import net.pier.geoe.register.GeoeBlocks;
+import net.pier.geoe.register.GeoeItems;
 import net.pier.geoe.register.GeoeMenuTypes;
 import net.pier.geoe.register.GeoeParticleTypes;
 
@@ -40,6 +46,16 @@ public class ModClient
                 }
         );
     }
+
+    @SubscribeEvent
+    public static void colorHandler(ColorHandlerEvent.Item event)
+    {
+        event.getItemColors().register((pStack, pTintIndex) -> {
+            ReservoirMap.MapType mapType = ReservoirMap.getMapType(pStack);
+            return mapType != null && pTintIndex == 1 ? mapType.getColor() : -1;
+        }, GeoeItems.RESERVOIR_MAP.get());
+    }
+
 
 
 
