@@ -6,10 +6,10 @@ import net.minecraft.advancements.critereon.*;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.pier.geoe.advancement.triggers.EarthquakeTrigger;
 import net.pier.geoe.item.ReservoirMap;
+import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeItems;
 
 import java.util.Set;
@@ -27,22 +27,30 @@ public class GeoeAdvancementProvider extends AdvancementProvider {
         super.registerAdvancements(consumer, fileHelper);
 
 
-        Advancement.Builder mapAdvancementBuilder = Advancement.Builder.advancement().display(GeoeItems.RESERVOIR_MAP.get(),
-                new TranslatableComponent("advancements.geoe.map"),
-                new TranslatableComponent("advancement.geoe.map.description"),
-                null, FrameType.GOAL, true, true, false);
+        //ROOT
+        Advancement root = AdvancementBuilder.root("block/frame",GeoeBlocks.PIPE).frameType(FrameType.GOAL)
+                .addCriterion("pickup", InventoryChangeTrigger.TriggerInstance.hasItems(GeoeBlocks.PIPE.get()))
+                .save(consumer, this.fileHelper);
+
+        AdvancementBuilder.child("earthquake", GeoeBlocks.GEYSERITE, root).hidden(true).frameType(FrameType.CHALLENGE)
+                .addCriterion("", new EarthquakeTrigger.TriggerInstance(EntityPredicate.Composite.ANY))
+                .save(consumer, this.fileHelper);
+
+        AdvancementBuilder mapAdvBuilder = AdvancementBuilder.child("reservoir_map", GeoeItems.RESERVOIR_MAP, root);
 
         for (ReservoirMap.MapType mapType : ReservoirMap.MapType.values()) {
-
             CompoundTag mapTagCheck = new CompoundTag();
-
             mapTagCheck.putString("mapType", mapType.name());
             NbtPredicate nbtPredicate = new NbtPredicate(mapTagCheck);
             ItemPredicate predicate = new ItemPredicate(null, Set.of(GeoeItems.RESERVOIR_MAP.get()), MinMaxBounds.Ints.ANY ,MinMaxBounds.Ints.ANY,new EnchantmentPredicate[0],new EnchantmentPredicate[0],null,nbtPredicate);
-
-            mapAdvancementBuilder.addCriterion(mapType.name(), InventoryChangeTrigger.TriggerInstance.hasItems(predicate));
+            mapAdvBuilder.addCriterion(mapType.name(), InventoryChangeTrigger.TriggerInstance.hasItems(predicate));
         }
+        mapAdvBuilder.save(consumer, fileHelper);
 
-        mapAdvancementBuilder.save(consumer, new ResourceLocation(Geothermal.MODID, "prova"), this.fileHelper);
+
+
+
+
     }
+
 }

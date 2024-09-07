@@ -20,7 +20,9 @@ fa40143647a969c3c40872f456a8fdea4e799070 assets/geoe/models/item/reservoir_map.j
 0af1fecf3b8d9a522f41b6c9513c47ecb513d071 assets/geoe/textures/block/frame.png.mcmeta
 a290aa5c718e90c349d9534258b21a9e3738a1e4 assets/geoe/textures/block/glass.png.mcmeta
 b00ecb05dc2f1f088f41f2dde35cdcba801f0fee data/forge/tags/items/tools/wrench.json
-1a134d6b278cb4335393354f23f650695401f6a3 data/geoe/advancements/prova.json
+54a0a2634b0c1fc11151b649af896ca6e3a2761b data/geoe/advancements/main/earthquake.json
+3c96987cb69115d2eafc0f8dde4179d121f7e06a data/geoe/advancements/main/reservoir_map.json
+93c0eb28fbdae9611c14815c3a2964828c837105 data/geoe/advancements/main/root.json
 64970406faf55a6e8077c8314b2d48adddbbc5e1 data/geoe/loot_tables/blocks/energy_input_valve.json
 4f826ee176284a6ea36e76ff17d0aede8b5620db data/geoe/loot_tables/blocks/energy_output_valve.json
 6154a02ba4b2741ddfaf264221c44c6a81b9273b data/geoe/loot_tables/blocks/fluid_input_valve.json
