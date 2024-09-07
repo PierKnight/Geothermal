@@ -1,0 +1,37 @@
+{
+  "display": {
+    "icon": {
+      "item": "geoe:geothermal_pipe"
+    },
+    "title": {
+      "translate": "advancements.geoe.root"
+    },
+    "description": {
+      "translate": "advancements.geoe.root.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false,
+    "background": "geoe:textures/block/frame.png"
+  },
+  "criteria": {
+    "pickup": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "geoe:geothermal_pipe"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "pickup"
+    ]
+  ]
+}

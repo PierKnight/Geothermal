@@ -1,0 +1,86 @@
+{
+  "parent": "geoe:main/root",
+  "display": {
+    "icon": {
+      "item": "geoe:reservoir_map"
+    },
+    "title": {
+      "translate": "advancements.geoe.reservoir_map"
+    },
+    "description": {
+      "translate": "advancements.geoe.reservoir_map.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "DEPTH": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "geoe:reservoir_map"
+            ],
+            "nbt": "{mapType:\"DEPTH\"}"
+          }
+        ]
+      }
+    },
+    "SIZE": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "geoe:reservoir_map"
+            ],
+            "nbt": "{mapType:\"SIZE\"}"
+          }
+        ]
+      }
+    },
+    "HEAT": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "geoe:reservoir_map"
+            ],
+            "nbt": "{mapType:\"HEAT\"}"
+          }
+        ]
+      }
+    },
+    "STEAM": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "geoe:reservoir_map"
+            ],
+            "nbt": "{mapType:\"STEAM\"}"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "DEPTH"
+    ],
+    [
+      "SIZE"
+    ],
+    [
+      "HEAT"
+    ],
+    [
+      "STEAM"
+    ]
+  ]
+}

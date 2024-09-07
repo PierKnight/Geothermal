@@ -1,0 +1,29 @@
+{
+  "parent": "geoe:main/root",
+  "display": {
+    "icon": {
+      "item": "geoe:geyserite"
+    },
+    "title": {
+      "translate": "advancements.geoe.earthquake"
+    },
+    "description": {
+      "translate": "advancements.geoe.earthquake.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "": {
+      "trigger": "geoe:earthquake",
+      "conditions": {}
+    }
+  },
+  "requirements": [
+    [
+      ""
+    ]
+  ]
+}
