@@ -2,17 +2,16 @@ package net.pier.geoe.model;
 
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.BlockMachineFrame;
 import net.pier.geoe.block.ControllerBlock;
+import net.pier.geoe.block.ReservoirPipeBlock;
 import net.pier.geoe.block.ValveBlock;
 import net.pier.geoe.register.GeoeBlocks;
 
@@ -31,14 +30,18 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
 
         simpleBlock(GeoeBlocks.GEYSERITE.get());
 
-        singleModel(GeoeBlocks.RESERVOIR_PIPE.get());
+
+        var reservoirPipeBuilder = getVariantBuilder(GeoeBlocks.RESERVOIR_PIPE.get()).partialState();
+        for (ReservoirPipeBlock.FluidType fluidType : ReservoirPipeBlock.FluidType.values())
+            reservoirPipeBuilder.with(ReservoirPipeBlock.FLUID_TYPE, fluidType).modelForState().modelFile(getModelFileFromBlock(GeoeBlocks.RESERVOIR_PIPE.get())).addModel();
+
 
 
         //all possible valve types
         for (RegistryObject<Block> value : GeoeBlocks.VALVES_BLOCK.values()) {
 
             Block block = value.get();
-            ModelFile modelFile = new ModelFile.ExistingModelFile(modLoc("block/" + block.getRegistryName().getPath()), this.models().existingFileHelper);
+            ModelFile modelFile = getModelFileFromBlock(block);
 
             getVariantBuilder(block)
                     .partialState().with(ValveBlock.FACING, Direction.NORTH).modelForState().modelFile(modelFile).addModel()
@@ -79,9 +82,9 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
         }
     }
 
-    private void singleModel(Block block)
+    private ModelFile getModelFileFromBlock(Block block)
     {
-        ResourceLocation resourceLocation = new ResourceLocation(Geothermal.MODID, "block/" + block.getRegistryName().getPath());
-        this.simpleBlock(block, new ConfiguredModel(new ModelFile.ExistingModelFile(resourceLocation, this.models().existingFileHelper)));
+        return new ModelFile.ExistingModelFile(modLoc("block/" + block.getRegistryName().getPath()), this.models().existingFileHelper);
     }
+
 }

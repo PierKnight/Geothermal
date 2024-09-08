@@ -3,6 +3,8 @@ package net.pier.geoe.capability.reservoir;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -22,9 +24,7 @@ import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.network.PacketReservoirSync;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class Reservoir implements IFluidTank, IFluidHandler {
@@ -41,6 +41,7 @@ public class Reservoir implements IFluidTank, IFluidHandler {
 
     //EarthQuake
     private List<BreakingBlockReservoir> breakingBlocks = new LinkedList<>();
+    private final Map<BlockPos, ReservoirDigInfo> digInfo = new HashMap<>();
     private int earthquakeTime = 0;
 
 
@@ -60,6 +61,15 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         this.inputTank = new FluidTank(capacity, type.inputFluid).readFromNBT(tag.getCompound("inputTank"));
         this.outputTank = new FluidTank(capacity).readFromNBT(tag.getCompound("outputTank"));
         this.heatFactor = tag.getInt("heatFactor");
+        ListTag depthListTag = tag.getList("depthMap", 10);
+
+        for (int i = 0; i < depthListTag.size(); i++) {
+            CompoundTag depthTag = depthListTag.getCompound(i);
+            ReservoirDigInfo reservoirDigInfo = new ReservoirDigInfo();
+            reservoirDigInfo.deserializeNBT(depthTag.getCompound("info"));
+            this.digInfo.put(NbtUtils.readBlockPos(depthTag.getCompound("pos")), reservoirDigInfo);
+        }
+
     }
 
 
@@ -83,6 +93,11 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         if(this.breakingBlocks.isEmpty() && this.earthquakeTime == 0)
             return -1.0F;
         return this.earthquakeTime / 20F;
+    }
+
+    public ReservoirDigInfo getDigInfo(BlockPos blockPos)
+    {
+        return this.digInfo.putIfAbsent(blockPos, new ReservoirDigInfo());
     }
 
     public void update(Level level, ChunkPos chunkPos)
@@ -282,6 +297,15 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         tag.put("outputTank",this.outputTank.writeToNBT(new CompoundTag()));
         tag.putInt("type", this.type.ordinal());
 
+        ListTag listTag = new ListTag();
+        this.digInfo.forEach((blockPos, digInfo) -> {
+            CompoundTag depthTag = new CompoundTag();
+            depthTag.put("pos",NbtUtils.writeBlockPos(blockPos));
+            depthTag.put("info", digInfo.serializeNBT());
+            listTag.add(depthTag);
+        });
+        tag.put("depthMap", listTag);
+
         return tag;
     }
 
@@ -292,6 +316,8 @@ public class Reservoir implements IFluidTank, IFluidHandler {
             buf1.writeVarInt(breakingBlockReservoir.getProgressSteps());
             buf1.writeVarInt(breakingBlockReservoir.getDelay());
         });
+
+        //buf.writeMap(this.digDepth, FriendlyByteBuf::writeBlockPos, FriendlyByteBuf::writeVarInt);
     }
 
     public void readUpdate(FriendlyByteBuf buf)

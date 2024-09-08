@@ -1,6 +1,12 @@
 {
   "variants": {
-    "": {
+    "fluid=empty": {
+      "model": "geoe:block/reservoir_pipe"
+    },
+    "fluid=water": {
+      "model": "geoe:block/reservoir_pipe"
+    },
+    "fluid=lava": {
       "model": "geoe:block/reservoir_pipe"
     }
   }
