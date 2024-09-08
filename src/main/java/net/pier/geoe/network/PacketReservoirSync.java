@@ -3,17 +3,12 @@ package net.pier.geoe.network;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
-import net.pier.geoe.capability.reservoir.BreakingBlockReservoir;
 import net.pier.geoe.capability.reservoir.Reservoir;
 import net.pier.geoe.capability.reservoir.ReservoirCapability;
 
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class PacketReservoirSync implements IPacket{
