@@ -1,12 +1,9 @@
 package net.pier.geoe.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.ItemColor;
-import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
@@ -43,6 +40,7 @@ public class ModClient
                             ItemBlockRenderTypes.setRenderLayer(controllerBlock, RenderType.cutout());
                     //SCREENS
                     MenuScreens.register(GeoeMenuTypes.EXTRACTOR.get(), WellScreen::new);
+
                 }
         );
     }

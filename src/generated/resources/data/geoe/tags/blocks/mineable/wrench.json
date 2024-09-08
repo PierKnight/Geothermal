@@ -6,6 +6,7 @@
     "geoe:injection_well",
     "geoe:glass",
     "geoe:frame",
+    "geoe:reservoir_pipe",
     "geoe:fluid_input_valve",
     "geoe:fluid_output_valve",
     "geoe:energy_input_valve",

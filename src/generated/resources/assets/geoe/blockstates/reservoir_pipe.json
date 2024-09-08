@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "geoe:block/reservoir_pipe"
+    }
+  }
+}

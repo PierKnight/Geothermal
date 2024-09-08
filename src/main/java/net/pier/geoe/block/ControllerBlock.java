@@ -21,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 
-@ParametersAreNonnullByDefault
-public abstract class ControllerBlock<T extends MultiBlockControllerEntity> extends Block implements EntityBlock {
+
+@SuppressWarnings("deprecation")
+public abstract class ControllerBlock<T extends MultiBlockControllerEntity<?>> extends Block implements EntityBlock {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 

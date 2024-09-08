@@ -24,8 +24,6 @@ public class GeoeAdvancementProvider extends AdvancementProvider {
 
     @Override
     protected void registerAdvancements(Consumer<Advancement> consumer, ExistingFileHelper fileHelper) {
-        super.registerAdvancements(consumer, fileHelper);
-
 
         //ROOT
         Advancement root = AdvancementBuilder.root("block/frame",GeoeBlocks.PIPE).frameType(FrameType.GOAL)

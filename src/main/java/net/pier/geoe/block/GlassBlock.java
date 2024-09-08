@@ -8,9 +8,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
-@ParametersAreNonnullByDefault
+@SuppressWarnings("deprecation")
 public class GlassBlock extends BlockMachineFrame{
     public GlassBlock(Properties pProperties) {
         super(pProperties);

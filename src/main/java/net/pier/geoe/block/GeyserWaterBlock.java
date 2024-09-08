@@ -1,6 +1,5 @@
 package net.pier.geoe.block;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,18 +31,14 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Optional;
 import java.util.Random;
 
-@MethodsReturnNonnullByDefault
-@ParametersAreNonnullByDefault
+@SuppressWarnings("deprecation")
 public class GeyserWaterBlock extends Block implements BucketPickup {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     public static final BooleanProperty GENERATOR = BooleanProperty.create("generator");
-
-
 
 
     public GeyserWaterBlock() {
@@ -113,12 +108,7 @@ public class GeyserWaterBlock extends Block implements BucketPickup {
 
 
 
-        if(pState.getValue(ACTIVE)) {
-            //pLevel.addAlwaysVisibleParticle(ParticleTypes.CLOUD, d0 + 0.5D, d1, d2 + 0.5D, 0.0D, 0.04D, 0.0D);
-            //pLevel.addAlwaysVisibleParticle(ParticleTypes.CLOUD, d0 + (double) pRandom.nextFloat(), d1 + (double) pRandom.nextFloat(), d2 + (double) pRandom.nextFloat(), 0.0D, 0.04D, 0.0D);
-        }
-        else
-        {
+        if(!pState.getValue(ACTIVE)) {
             pLevel.addAlwaysVisibleParticle(ParticleTypes.BUBBLE, d0, d1, d2, 0.0D, 0.04D, 0.0D);
         }
 

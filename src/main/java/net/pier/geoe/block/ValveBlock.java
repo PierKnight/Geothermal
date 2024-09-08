@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
 import org.jetbrains.annotations.Nullable;
-
+@SuppressWarnings("deprecation")
 public class ValveBlock extends Block implements EntityBlock{
 
     public static final DirectionProperty FACING = DirectionalBlock.FACING;

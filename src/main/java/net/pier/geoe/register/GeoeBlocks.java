@@ -37,6 +37,7 @@ public class GeoeBlocks
     public static final RegistryObject<Block> PIPE = registerBlock("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)), true);
     public static final RegistryObject<Block> GLASS = registerBlock("glass", () -> new GlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(GeoeBlocks::never).isRedstoneConductor(GeoeBlocks::never).isSuffocating(GeoeBlocks::never).isViewBlocking(GeoeBlocks::never)), true);
     public static final RegistryObject<Block> FRAME = registerBlock("frame", () -> new BlockMachineFrame(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL)), true);
+    public static final RegistryObject<Block> RESERVOIR_PIPE = registerBlock("reservoir_pipe", () -> new ReservoirPipeBlock(BlockBehaviour.Properties.of(Material.METAL).strength(1.2F).sound(SoundType.ANVIL)), true);
 
     public static final RegistryObject<Block> GEYSER_WATER = registerBlock("geyser_water", GeyserWaterBlock::new, false);
 

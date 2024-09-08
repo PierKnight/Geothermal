@@ -2,9 +2,11 @@ package net.pier.geoe.model;
 
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
@@ -28,6 +30,9 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
 
 
         simpleBlock(GeoeBlocks.GEYSERITE.get());
+
+        singleModel(GeoeBlocks.RESERVOIR_PIPE.get());
+
 
         //all possible valve types
         for (RegistryObject<Block> value : GeoeBlocks.VALVES_BLOCK.values()) {
@@ -72,5 +77,11 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
                 itemModels().withExistingParent(name, modLoc("block/" + name));
 
         }
+    }
+
+    private void singleModel(Block block)
+    {
+        ResourceLocation resourceLocation = new ResourceLocation(Geothermal.MODID, "block/" + block.getRegistryName().getPath());
+        this.simpleBlock(block, new ConfiguredModel(new ModelFile.ExistingModelFile(resourceLocation, this.models().existingFileHelper)));
     }
 }

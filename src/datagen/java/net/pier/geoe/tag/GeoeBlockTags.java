@@ -28,7 +28,8 @@ public class GeoeBlockTags extends BlockTagsProvider {
                 .add(GeoeBlocks.PRODUCTION_WELL.get())
                 .add(GeoeBlocks.INJECTION_WELL.get())
                 .add(GeoeBlocks.GLASS.get())
-                .add(GeoeBlocks.FRAME.get());
+                .add(GeoeBlocks.FRAME.get())
+                .add(GeoeBlocks.RESERVOIR_PIPE.get());
 
         for (RegistryObject<Block> blockRegistryObject : GeoeBlocks.VALVES_BLOCK.values())
            tagAppender.add(blockRegistryObject.get());
