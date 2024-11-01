@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "multiblock=false": {
+      "model": "geoe:block/drill"
+    },
+    "multiblock=true": {
+      "model": "geoe:block/drill"
+    }
+  }
+}

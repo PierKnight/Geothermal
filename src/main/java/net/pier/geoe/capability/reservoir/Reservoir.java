@@ -95,9 +95,16 @@ public class Reservoir implements IFluidTank, IFluidHandler {
         return this.earthquakeTime / 20F;
     }
 
-    public ReservoirDigInfo getDigInfo(BlockPos blockPos)
+    public ReservoirDigInfo getDigInfo(BlockPos pos)
     {
-        return this.digInfo.putIfAbsent(blockPos, new ReservoirDigInfo());
+        BlockPos digPos = new BlockPos(pos.getX(),0, pos.getZ());
+        ReservoirDigInfo reservoirDigInfo = this.digInfo.get(digPos);
+        if(reservoirDigInfo == null)
+        {
+            reservoirDigInfo = new ReservoirDigInfo();
+            this.digInfo.putIfAbsent(digPos, reservoirDigInfo);
+        }
+        return reservoirDigInfo;
     }
 
     public void update(Level level, ChunkPos chunkPos)

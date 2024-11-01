@@ -20,6 +20,7 @@ public class GeoeMultiBlocks {
 
     public static final Supplier<TemplateMultiBlock> PRODUCTION_WELL = register("production_well", () -> new TemplateMultiBlock("production_well"));
     public static final Supplier<TemplateMultiBlock> INJECTION_WELL = register("injection_well", () -> new TemplateMultiBlock("injection_well"));
+    public static final Supplier<TemplateMultiBlock> DRILL = register("drill", () -> new TemplateMultiBlock("drill"));
     public static final Supplier<DynamicMultiBlock> TANK = register("tank", () -> new DynamicMultiBlock(new Vec3i(3,3,3), new BlockPos(5,10,5)));
 
 

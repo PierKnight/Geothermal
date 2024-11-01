@@ -141,6 +141,10 @@ public class TemplateMultiBlock implements IMultiBlock{
         }
 
 
+        public List<StructureTemplate.StructureBlockInfo> getStructureBlockInfos() {
+            return structureBlockInfos;
+        }
+
         private BlockState getValveFromString(String string, CompoundTag tag)
         {
             String[] data = string.split(",");

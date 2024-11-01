@@ -1,35 +1,35 @@
 {
   "variants": {
     "complete=false,facing=north": {
-      "model": "geoe:block/production_well",
+      "model": "geoe:block/drill_controller",
       "y": 360
     },
     "complete=true,facing=north": {
-      "model": "geoe:block/production_well_complete",
+      "model": "geoe:block/drill_controller_complete",
       "y": 360
     },
     "complete=false,facing=south": {
-      "model": "geoe:block/production_well",
+      "model": "geoe:block/drill_controller",
       "y": 180
     },
     "complete=true,facing=south": {
-      "model": "geoe:block/production_well_complete",
+      "model": "geoe:block/drill_controller_complete",
       "y": 180
     },
     "complete=false,facing=west": {
-      "model": "geoe:block/production_well",
+      "model": "geoe:block/drill_controller",
       "y": 270
     },
     "complete=true,facing=west": {
-      "model": "geoe:block/production_well_complete",
+      "model": "geoe:block/drill_controller_complete",
       "y": 270
     },
     "complete=false,facing=east": {
-      "model": "geoe:block/production_well",
+      "model": "geoe:block/drill_controller",
       "y": 450
     },
     "complete=true,facing=east": {
-      "model": "geoe:block/production_well_complete",
+      "model": "geoe:block/drill_controller_complete",
       "y": 450
     }
   }

@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "pipe=false":  { "model": "geoe:block/mined_bedrock" },
+    "pipe=true":   { "model": "geoe:block/mined_bedrock_pipe" }
+  }
+}

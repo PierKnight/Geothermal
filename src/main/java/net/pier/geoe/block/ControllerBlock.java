@@ -21,17 +21,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-
+import java.util.function.BiFunction;
 
 
 @SuppressWarnings("deprecation")
 public abstract class ControllerBlock<T extends MultiBlockControllerEntity<?>> extends Block implements EntityBlock {
 
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    private final BiFunction<BlockPos, BlockState, T> blockEntitySupplier;
 
-    public ControllerBlock(Properties pProperties) {
+    public ControllerBlock(Properties pProperties, BiFunction<BlockPos, BlockState, T> blockEntitySupplier) {
         super(pProperties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(BlockMachineFrame.COMPLETE, false));
+        this.blockEntitySupplier = blockEntitySupplier;
     }
 
     @Override
@@ -42,7 +44,7 @@ public abstract class ControllerBlock<T extends MultiBlockControllerEntity<?>> e
             return InteractionResult.SUCCESS;
 
         if(pPlayer instanceof ServerPlayer serverPlayer && pLevel.getBlockEntity(pPos) instanceof MultiBlockControllerEntity<?> controller)
-            return controller.use(serverPlayer);
+            return controller.use(pLevel, serverPlayer);
         return InteractionResult.FAIL;
     }
 
@@ -61,12 +63,15 @@ public abstract class ControllerBlock<T extends MultiBlockControllerEntity<?>> e
 
     @Nullable
     @Override
-    public abstract T newBlockEntity(BlockPos blockPos, BlockState blockState);
+    public T newBlockEntity(BlockPos blockPos, BlockState blockState)
+    {
+        return this.blockEntitySupplier.apply(blockPos, blockState);
+    }
 
     @Nullable
     @Override
     public <A extends BlockEntity> BlockEntityTicker<A> getTicker(Level pLevel, BlockState pState, BlockEntityType<A> pBlockEntityType) {
-        return pLevel.isClientSide ? null : (level, blockPos, blockState, t) -> {
+        return (level, blockPos, blockState, t) -> {
             if(t instanceof MultiBlockControllerEntity<?> controller)
                 MultiBlockControllerEntity.tick(level,blockPos,blockState,controller);
         };

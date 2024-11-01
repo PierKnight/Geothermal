@@ -6,7 +6,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 public class ReservoirDigInfo implements INBTSerializable<CompoundTag>{
     private int depth = 0;
     private int pipes = 0;
-
+    private int drill = 0;
 
     public ReservoirDigInfo()
     {
@@ -20,9 +20,16 @@ public class ReservoirDigInfo implements INBTSerializable<CompoundTag>{
         return depth;
     }
 
+    public int getDrill() {
+        return drill;
+    }
+
     public void dig()
     {
-        depth++;
+        if(drill == depth)
+            depth++;
+
+        drill++;
     }
 
     public void addPipe()
@@ -45,6 +52,7 @@ public class ReservoirDigInfo implements INBTSerializable<CompoundTag>{
         CompoundTag depthTag = new CompoundTag();
         depthTag.putInt("depth", this.depth);
         depthTag.putInt("pipes", this.pipes);
+        depthTag.putInt("drill", this.drill);
         return depthTag;
     }
 
@@ -52,5 +60,6 @@ public class ReservoirDigInfo implements INBTSerializable<CompoundTag>{
     public void deserializeNBT(CompoundTag nbt) {
         this.depth = nbt.getInt("depth");
         this.pipes = nbt.getInt("pipes");
+        this.drill = nbt.getInt("drill");
     }
 }

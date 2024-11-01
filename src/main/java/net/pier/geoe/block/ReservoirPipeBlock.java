@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -34,6 +35,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.pier.geoe.capability.CapabilityInitializer;
 import net.pier.geoe.capability.reservoir.ReservoirCapability;
+import net.pier.geoe.register.GeoeBlocks;
 
 import java.util.Random;
 
@@ -81,7 +83,7 @@ public class ReservoirPipeBlock extends Block {
 
         if(pPlayer.isCrouching())
         {
-            if(tryRemovePipe(pLevel, pPlayer, pPos))
+            if(tryRemovePipe(pLevel, pPlayer,pHand, pPos))
                 return InteractionResult.sidedSuccess(pLevel.isClientSide);
         }
         else if(stack.is(this.asItem()))
@@ -105,17 +107,35 @@ public class ReservoirPipeBlock extends Block {
     }
 
 
-    private boolean canPassThrough(Level level, BlockPos blockPos, BlockState blockState)
-    {
-        return level.getBlockState(blockPos).getBlock().defaultDestroyTime() < 0.0 &&
-                blockState.isFaceSturdy(level, blockPos, Direction.UP) &&
-                blockState.isFaceSturdy(level, blockPos, Direction.DOWN);
+    @Override
+    public RenderShape getRenderShape(BlockState pState) {
+        return super.getRenderShape(pState);
     }
 
-    private boolean tryRemovePipe(Level level, Player player, BlockPos pos)
+    private boolean tryRemovePipe(Level level, Player player,InteractionHand interactionHand, BlockPos pos)
     {
+        ReservoirCapability reservoirCapability = CapabilityInitializer.getCap(level, ReservoirCapability.CAPABILITY);
+        if(reservoirCapability == null || level.isClientSide)
+            return false;
+
         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
         mutableBlockPos.set(pos);
+
+        int count = 0;
+
+        int maxDepth = level.getMinBuildHeight() - reservoirCapability.getReservoir(new ChunkPos(mutableBlockPos)).getDigInfo(mutableBlockPos).getDepth();
+        while(mutableBlockPos.getY() > maxDepth && count++ < 3)
+        {
+            if(level.getBlockState(mutableBlockPos).is(this)) {
+                if(level.destroyBlock(mutableBlockPos, false))
+                {
+                    ItemStack stack = new ItemStack(this);
+                    if(!player.getInventory().add(stack))
+                       player.drop(stack, false);
+                }
+            }
+            mutableBlockPos.move(Direction.DOWN);
+        }
 
         return true;
     }
@@ -123,7 +143,7 @@ public class ReservoirPipeBlock extends Block {
     private boolean tryPlacePipe(Player player, InteractionHand interactionHand, ItemStack stack, Level level, BlockHitResult blockHitResult)
     {
         ReservoirCapability reservoirCapability = CapabilityInitializer.getCap(level, ReservoirCapability.CAPABILITY);
-        if(reservoirCapability == null)
+        if(reservoirCapability == null || level.isClientSide)
             return false;
 
         BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
@@ -142,17 +162,36 @@ public class ReservoirPipeBlock extends Block {
         {
             mutableBlockPos.move(Direction.DOWN);
             hitPos = hitPos.add(0,-1,0);
-            BlockState state = level.getBlockState(mutableBlockPos);
-            //SKIP UNBREAKABLE BLOCK WHICH HAS A FULL FACE UP AND DOWN
-            if(canPassThrough(level, mutableBlockPos, state))
+
+            if(mutableBlockPos.getY() < level.getMinBuildHeight())
+            {
+                totalPlaced +=1;
+                reservoirCapability.getReservoir(new ChunkPos(mutableBlockPos)).getDigInfo(mutableBlockPos).addPipe();
                 continue;
+            }
+
+            BlockState state = level.getBlockState(mutableBlockPos);
 
             BlockPlaceContext blockPlaceContext = new BlockPlaceContext(player, interactionHand, stack, new BlockHitResult(hitPos, Direction.UP, mutableBlockPos, false));
-            InteractionResult interactionResult = blockItem.place(blockPlaceContext);
+            InteractionResult interactionResult = placePipeBlock(level,stack, mutableBlockPos, blockPlaceContext);
             if(interactionResult == InteractionResult.CONSUME || interactionResult == InteractionResult.SUCCESS)
                 totalPlaced += 1;
         }
         return totalPlaced > 0;
+    }
+
+    private InteractionResult placePipeBlock(Level level, ItemStack stack, BlockPos pos, BlockPlaceContext blockPlaceContext)
+    {
+        BlockItem blockItem = (BlockItem) this.asItem();
+        BlockState blockState = level.getBlockState(pos);
+        if(blockState.is(GeoeBlocks.MINED_BEDROCK.get()) && !blockState.getValue(MinedBedrockBlock.PIPE)) {
+            level.setBlock(pos, GeoeBlocks.MINED_BEDROCK.get().defaultBlockState().setValue(MinedBedrockBlock.PIPE, true), 2);
+            stack.shrink(1);
+            return InteractionResult.SUCCESS;
+        }
+        else
+            return blockItem.place(blockPlaceContext);
+
     }
 
 

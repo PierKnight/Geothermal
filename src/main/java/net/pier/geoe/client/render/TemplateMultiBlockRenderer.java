@@ -11,12 +11,18 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.blockentity.multiblock.IMultiBlock;
@@ -37,14 +43,14 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
 
     private static final FakeWorld fakeWorld = new FakeWorld();
 
-    private final BlockEntityRendererProvider.Context context;
+    protected final BlockEntityRendererProvider.Context context;
 
     public TemplateMultiBlockRenderer(BlockEntityRendererProvider.Context context)
     {
         this.context = context;
     }
 
-    public void renderMultiBlock(Level level, T blockEntity, IMultiBlock iMultiBlock)
+    public void renderMultiBlock(Level level, T blockEntity, IMultiBlock iMultiBlock,  float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
     {
 
     }
@@ -52,12 +58,8 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
     @Override
     public void render(T pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay)
     {
-
         Level level = pBlockEntity.getLevel();
         if(level == null)
-            return;
-
-        if(pBlockEntity.isComplete())
             return;
 
         TemplateMultiBlock templateMultiBlock = pBlockEntity.getMultiBlock();
@@ -68,39 +70,40 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
         if(templateMultiBlock != null && controllerState.getBlock() instanceof ControllerBlock<?>) {
 
                 if(pBlockEntity.isComplete())
-                    this.renderMultiBlock(level, pBlockEntity, templateMultiBlock);
+                    this.renderMultiBlock(level, pBlockEntity, templateMultiBlock, pPartialTick, poseStack, pBufferSource, pPackedLight, pPackedOverlay);
+                else {
+                    Direction direction = controllerState.getValue(ControllerBlock.FACING);
+                    fakeWorld.updateWorld(level, templateMultiBlock);
 
-                Direction direction = controllerState.getValue(ControllerBlock.FACING);
-                fakeWorld.updateWorld(level, templateMultiBlock);
+                    templateMultiBlock.forEachBlock(level, direction, structureBlock -> {
+                        BlockState state = structureBlock.state;
 
-                templateMultiBlock.forEachBlock(level, direction, structureBlock -> {
-                    BlockState state = structureBlock.state;
+                        BlockPos offsetPos = templateMultiBlock.getOffsetPos(level, structureBlock.pos, direction);
+                        if (state.getRenderShape() == RenderShape.MODEL) {
 
-                    BlockPos offsetPos = templateMultiBlock.getOffsetPos(level, structureBlock.pos, direction);
-                    if (state.getRenderShape() == RenderShape.MODEL) {
+                            boolean validHeldBlock = Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().is(state.getBlock().asItem());
+                            float scale = validHeldBlock ? 0.7F : 0.5F;
+                            float alpha = validHeldBlock ? 0.8F : 0.33F;
+                            BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
+                            if (!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
+                                poseStack.pushPose();
+                                poseStack.translate(offsetPos.getX(), offsetPos.getY(), offsetPos.getZ());
+                                float shift = (1.0F - scale) * 0.5F;
+                                poseStack.translate(shift, shift, shift);
+                                poseStack.scale(scale, scale, scale);
 
-                        boolean validHeldBlock = Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().is(state.getBlock().asItem());
-                        float scale = validHeldBlock ? 0.7F : 0.5F;
-                        float alpha = validHeldBlock ? 0.8F : 0.33F;
-                        BlockState currentBlock = level.getBlockState(offsetPos.offset(pBlockEntity.getBlockPos()));
-                        if(!currentBlock.equals(structureBlock.state) && !structureBlock.state.isAir()) {
-                            poseStack.pushPose();
-                            poseStack.translate(offsetPos.getX(),offsetPos.getY(),offsetPos.getZ());
-                            float shift = (1.0F - scale) * 0.5F;
-                            poseStack.translate(shift,shift,shift);
-                            poseStack.scale(scale, scale, scale);
-
-                            RenderType type = RenderHelper.depthTranslucent();
-                            BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
-                            BakedModel bakedModel =  blockRenderDispatcher.getBlockModel(state);
-                            blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
-                            blockVertexWrapper.setAlpha(alpha);
-                            blockRenderDispatcher.getModelRenderer().tesselateBlock(fakeWorld,bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
-                            poseStack.popPose();
+                                RenderType type = RenderHelper.depthTranslucent();
+                                BlockRenderDispatcher blockRenderDispatcher = this.context.getBlockRenderDispatcher();
+                                BakedModel bakedModel = blockRenderDispatcher.getBlockModel(state);
+                                blockVertexWrapper.setWrapper(pBufferSource.getBuffer(type));
+                                blockVertexWrapper.setAlpha(alpha);
+                                blockRenderDispatcher.getModelRenderer().tesselateBlock(fakeWorld, bakedModel, state, structureBlock.pos, poseStack, blockVertexWrapper, false, new Random(), state.getSeed(pBlockEntity.getBlockPos()), OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
+                                poseStack.popPose();
+                            }
                         }
-                    }
-                    return true;
-                });
+                        return true;
+                    });
+                }
             }
         }
 
@@ -266,16 +269,51 @@ public class TemplateMultiBlockRenderer<T extends MultiBlockControllerEntity<Tem
          */
 
 
+    public static void drawCube(Matrix4f matrix4f, VertexConsumer buffer, Matrix3f normalM, int light, AABB aabb)
+    {
+        ResourceLocation resourceLocation = Fluids.WATER.getAttributes().getStillTexture();
+        TextureAtlasSprite liquidTexture = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(resourceLocation);
+
+
+        float minU = liquidTexture.getU0();
+        float maxU = liquidTexture.getU1();
+        float minV = liquidTexture.getV0();
+        float maxV = liquidTexture.getV1();
+
+        float x = (float) aabb.minX;
+        float y = (float) aabb.minY;
+        float z = (float) aabb.minZ;
+
+
+
+
+        Direction direction = Direction.SOUTH;
+        Vec3i normal = direction.getNormal();
+        Vec3i otherVector = new Vec3i(normal.getZ() * normal.getZ(),normal.getX() * normal.getX(), normal.getY() * normal.getY());
+        Vec3i cross = normal.cross(otherVector);
+
+
+
+        drawFace(matrix4f, buffer, normalM, light, minU,maxU, minV, maxV, false,
+                x + normal.getX(),y + normal.getY(),z + normal.getZ() + otherVector.getZ() + cross.getZ(),
+                x + normal.getX() + otherVector.getX() + cross.getX(),y +normal.getY() + otherVector.getY() + cross.getY(),z + normal.getZ() +  + otherVector.getZ() + cross.getZ(),
+                x + normal.getX() + otherVector.getX() + cross.getX(),y + normal.getY(), z +normal.getZ(),
+                x + normal.getX(),y + normal.getY(), z + normal.getZ());
+
+
+
+    }
+
     public static void drawFace(Matrix4f matrix4f, VertexConsumer buffer, Matrix3f normal, int light, float minU, float maxU, float minV, float maxV, boolean inside, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4)
     {
-        //if(!inside)
+        if(!inside)
         {
             buffer.vertex(matrix4f, x1, y1, z1).color(1F, 1F, 1F, 1F).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();
             buffer.vertex(matrix4f, x2, y2, z2).color(1F, 1F, 1F, 1F).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();
             buffer.vertex(matrix4f, x3, y3, z3).color(1F, 1F, 1F, 1F).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();
             buffer.vertex(matrix4f, x4, y4, z4).color(1F, 1F, 1F, 1F).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();
         }
-        //else
+        else
         {
             buffer.vertex(matrix4f, x4, y4, z4).color(1F, 1F, 1F, 1F).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();
             buffer.vertex(matrix4f, x3, y3, z3).color(1F, 1F, 1F, 1F).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal, 0.0F, 1.0F, 1.0F).endVertex();

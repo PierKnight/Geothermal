@@ -16,6 +16,7 @@ import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.ControllerBlock;
 import net.pier.geoe.client.particle.GasParticle;
+import net.pier.geoe.client.render.DrillMultiBlockRenderer;
 import net.pier.geoe.client.render.TemplateMultiBlockRenderer;
 import net.pier.geoe.gui.WellScreen;
 import net.pier.geoe.item.ReservoirMap;
@@ -65,6 +66,7 @@ public class ModClient
     @SubscribeEvent
     public static void registerRenders(final EntityRenderersEvent.RegisterRenderers event)
     {
+        event.registerBlockEntityRenderer(GeoeBlocks.DRILL_BE.get(), DrillMultiBlockRenderer::new);
         event.registerBlockEntityRenderer(GeoeBlocks.PRODUCTION_WELL_BE.get(), TemplateMultiBlockRenderer::new);
         event.registerBlockEntityRenderer(GeoeBlocks.INJECTION_WELL_BE.get(), TemplateMultiBlockRenderer::new);
     }

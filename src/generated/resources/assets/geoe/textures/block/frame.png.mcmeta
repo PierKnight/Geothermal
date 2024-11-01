@@ -27,6 +27,15 @@
           ]
         },
         {
+          "block": "geoe:drill_controller",
+          "predicate": [
+            {
+              "complete": "true",
+              "compare_func": "="
+            }
+          ]
+        },
+        {
           "block": "geoe:frame",
           "predicate": [
             {

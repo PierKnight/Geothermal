@@ -20,6 +20,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
 import net.pier.geoe.block.*;
+import net.pier.geoe.blockentity.DrillBlockEntity;
 import net.pier.geoe.blockentity.PipeBlockEntity;
 import net.pier.geoe.blockentity.WellBlockEntity;
 import net.pier.geoe.blockentity.valve.ValveBlockEntity;
@@ -34,10 +35,13 @@ public class GeoeBlocks
 
     public static final RegistryObject<Block> PRODUCTION_WELL = registerBlock("production_well", () -> new ProductionWellBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
     public static final RegistryObject<Block> INJECTION_WELL = registerBlock("injection_well", () -> new InjectionWellBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
+    public static final RegistryObject<Block> DRILL_CONTROLLER = registerBlock("drill_controller", () -> new DrillControllerBlock(BlockBehaviour.Properties.of(Material.GLASS).noOcclusion().isViewBlocking((p_61036_, p_61037_, p_61038_) -> false)), true);
     public static final RegistryObject<Block> PIPE = registerBlock("geothermal_pipe", () -> new GeothermalPipeBlock(BlockBehaviour.Properties.of(Material.AMETHYST)), true);
     public static final RegistryObject<Block> GLASS = registerBlock("glass", () -> new GlassBlock(BlockBehaviour.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).noOcclusion().isValidSpawn(GeoeBlocks::never).isRedstoneConductor(GeoeBlocks::never).isSuffocating(GeoeBlocks::never).isViewBlocking(GeoeBlocks::never)), true);
     public static final RegistryObject<Block> FRAME = registerBlock("frame", () -> new BlockMachineFrame(BlockBehaviour.Properties.of(Material.METAL).strength(0.8F).sound(SoundType.METAL)), true);
+    public static final RegistryObject<Block> MINED_BEDROCK = registerBlock("mined_bedrock", MinedBedrockBlock::new,false);
     public static final RegistryObject<Block> RESERVOIR_PIPE = registerBlock("reservoir_pipe", () -> new ReservoirPipeBlock(BlockBehaviour.Properties.of(Material.METAL).strength(1.2F).sound(SoundType.ANVIL)), true);
+    public static final RegistryObject<Block> DRILL = registerBlock("drill", () -> new DrillBlock(BlockBehaviour.Properties.of(Material.METAL).strength(1.2F).sound(SoundType.ANVIL)), true);
 
     public static final RegistryObject<Block> GEYSER_WATER = registerBlock("geyser_water", GeyserWaterBlock::new, false);
 
@@ -53,6 +57,7 @@ public class GeoeBlocks
     public static final RegistryObject<BlockEntityType<WellBlockEntity.Production>> PRODUCTION_WELL_BE = BE_REGISTER.register("production_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Production::new, PRODUCTION_WELL.get()).build(null));
     public static final RegistryObject<BlockEntityType<WellBlockEntity.Injection>> INJECTION_WELL_BE = BE_REGISTER.register("injection_well_type", () -> BlockEntityType.Builder.of(WellBlockEntity.Injection::new, INJECTION_WELL.get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<DrillBlockEntity>> DRILL_BE = BE_REGISTER.register("drill_type", () -> BlockEntityType.Builder.of(DrillBlockEntity::new, DRILL_CONTROLLER.get()).build(null));
 
     public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<Block>> VALVES_BLOCK = HashBasedTable.create();
     public static final Table<ValveBlockEntity.Type, ValveBlockEntity.Flow, RegistryObject<BlockEntityType<BlockEntity>>> VALVES_TYPE = HashBasedTable.create();

@@ -9,10 +9,7 @@ import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import net.pier.geoe.Geothermal;
-import net.pier.geoe.block.BlockMachineFrame;
-import net.pier.geoe.block.ControllerBlock;
-import net.pier.geoe.block.ReservoirPipeBlock;
-import net.pier.geoe.block.ValveBlock;
+import net.pier.geoe.block.*;
 import net.pier.geoe.register.GeoeBlocks;
 
 import java.util.Objects;
@@ -30,6 +27,9 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
 
         simpleBlock(GeoeBlocks.GEYSERITE.get());
 
+        getVariantBuilder(GeoeBlocks.DRILL.get())
+                .partialState().with(DrillBlock.MULTIBLOCK, false).modelForState().modelFile(getModelFileFromBlock(GeoeBlocks.DRILL.get())).addModel()
+                .partialState().with(DrillBlock.MULTIBLOCK, true).modelForState().modelFile(getModelFileFromBlock(GeoeBlocks.DRILL.get())).addModel();
 
         var reservoirPipeBuilder = getVariantBuilder(GeoeBlocks.RESERVOIR_PIPE.get()).partialState();
         for (ReservoirPipeBlock.FluidType fluidType : ReservoirPipeBlock.FluidType.values())
@@ -68,8 +68,8 @@ public class GeoeBlockStateProvider extends BlockStateProvider {
 
                     //BlockState
                     getVariantBuilder(controllerBlock)
-                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, false).modelForState().rotationY((int) direction.toYRot()).modelFile(incompleteModelFile).addModel()
-                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, true).modelForState().rotationY((int) direction.toYRot()).modelFile(completeModelFile).addModel();
+                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, false).modelForState().rotationY((int) direction.toYRot() + 180).modelFile(incompleteModelFile).addModel()
+                            .partialState().with(ControllerBlock.FACING, direction).with(BlockMachineFrame.COMPLETE, true).modelForState().rotationY((int) direction.toYRot()  + 180).modelFile(completeModelFile).addModel();
 
 
                 }
