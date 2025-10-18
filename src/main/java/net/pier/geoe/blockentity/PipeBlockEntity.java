@@ -18,14 +18,19 @@ import java.util.UUID;
 public class PipeBlockEntity extends BaseBlockEntity {
 
     private final EnumPipeConnection[] connection = new EnumPipeConnection[6];
+
+    private final boolean[] obstructed = new boolean[6];
     private UUID networkUUID;
     int tankConnections = 0;
+
+    //client side only fluid used to update particles
     private FluidStack fluidStack = FluidStack.EMPTY;
 
     public PipeBlockEntity(BlockPos pPos, BlockState pBlockState)
     {
         super(GeoeBlocks.PIPE_BE.get(), pPos, pBlockState);
         Arrays.fill(connection,EnumPipeConnection.NONE);
+        Arrays.fill(this.obstructed,false);
     }
 
     public UUID getNetworkUUID() {
@@ -52,6 +57,12 @@ public class PipeBlockEntity extends BaseBlockEntity {
             this.fluidStack = FluidStack.EMPTY;
             this.syncInfo();
         }
+    }
+
+
+    public boolean isSideObstructed(Direction direction)
+    {
+        return this.obstructed[direction.ordinal()];
     }
 
     public int getTankConnections()
@@ -106,10 +117,11 @@ public class PipeBlockEntity extends BaseBlockEntity {
 
 
         GeothermalPipeBlock.PROPERTY_BY_DIRECTION.forEach((direction, enumPipeConnectionEnumProperty) -> {
-            if (!fluidStack.getFluid().getAttributes().isGaseous())
-                SoundManager.stopGasLeak(getBlockPos(), direction);
-            else if(this.getBlockState().getValue(enumPipeConnectionEnumProperty) == EnumPipeConnection.OUTPUT)
-                SoundManager.playGasLeak(getBlockPos(), direction);
+            //if (!fluidStack.getFluid().getAttributes().isGaseous())
+            //    SoundManager.stopGasLeak(getBlockPos(), direction);
+            if(fluidStack.getFluid().getAttributes().isGaseous() && this.getBlockState().getValue(enumPipeConnectionEnumProperty) == EnumPipeConnection.OUTPUT)
+                SoundManager.playGasLeak(this, direction);
+                //SoundManager.playGasLeak(getBlockPos(), direction);
         });
     }
 

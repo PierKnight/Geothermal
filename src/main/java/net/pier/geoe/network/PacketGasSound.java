@@ -1,10 +1,8 @@
 package net.pier.geoe.network;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
-import net.pier.geoe.client.sound.SoundManager;
 
 import java.util.function.Supplier;
 
@@ -33,8 +31,6 @@ public class PacketGasSound implements IPacket
     {
         context.get().enqueueWork(() ->
         {
-            for (Direction direction : Direction.values())
-                SoundManager.stopGasLeak(this.pos, direction);
         });
 
     }

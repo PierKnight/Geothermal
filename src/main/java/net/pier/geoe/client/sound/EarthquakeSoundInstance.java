@@ -41,7 +41,7 @@ public class EarthquakeSoundInstance extends AbstractTickableSoundInstance {
             clientLevel.getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> {
                 float earthquakeAmount = cap.getReservoir(chunkPos).getEarthquakeTime();
                 if(earthquakeAmount >= 0.0F)
-                    this.volume = 1.0F * earthquakeAmount;
+                    this.volume = earthquakeAmount;
                 else
                     this.stop();
             });

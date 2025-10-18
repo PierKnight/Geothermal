@@ -11,7 +11,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -72,24 +71,34 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
         return ImmutableSet.copyOf(this.networkPipesList);
     }
 
-    private void updateTank(@Nullable IFluidHandler tank, EnumPipeConnection connection)
+
+    private long test = 0;
+    private int amount = 0;
+
+    private void updateTank(Level level, @Nullable IFluidHandler tank, EnumPipeConnection connection)
     {
+        if(level.getGameTime() != test)
+        {
+            test = level.getGameTime();
+            amount = this.internalTank.getFluidAmount();
+        }
+
         if(tank == null)
         {
             if(connection == EnumPipeConnection.OUTPUT)
-                this.internalTank.drain(500 / this.outputs, IFluidHandler.FluidAction.EXECUTE);
+                this.internalTank.drain(50, IFluidHandler.FluidAction.EXECUTE);
             return;
         }
 
         if(connection == EnumPipeConnection.INPUT)
         {
-            FluidStack drained = tank.drain(500, IFluidHandler.FluidAction.SIMULATE);
+            FluidStack drained = tank.drain(this.internalTank.getCapacity(), IFluidHandler.FluidAction.SIMULATE);
             int filledAmount = this.internalTank.fill(drained, IFluidHandler.FluidAction.EXECUTE);
             tank.drain(filledAmount, IFluidHandler.FluidAction.EXECUTE);
         }
         else if(this.outputs > 0)
         {
-            FluidStack drained = this.internalTank.drain(500 / this.outputs, IFluidHandler.FluidAction.SIMULATE);
+            FluidStack drained = this.internalTank.drain(amount / outputs, IFluidHandler.FluidAction.SIMULATE);
             int filledAmount = tank.fill(drained, IFluidHandler.FluidAction.EXECUTE);
             this.internalTank.drain(filledAmount, IFluidHandler.FluidAction.EXECUTE);
         }
@@ -101,8 +110,7 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
         if (!fluidStack.isEmpty()) {
 
             GeothermalPipeBlock.PROPERTY_BY_DIRECTION.forEach((direction, connectionFacing) -> {
-                boolean emptyShape = level.getBlockState(pos.relative(direction)).getCollisionShape(level, pos) == Shapes.empty();
-                if (state.getValue(connectionFacing) == EnumPipeConnection.OUTPUT && emptyShape) {
+                if (state.getValue(connectionFacing) == EnumPipeConnection.OUTPUT && !GeothermalPipeBlock.IsBlockingLeak(level, pos, direction)) {
                     for (int i = 0; i < 13; i++) {
                         Vec3i normal = direction.getNormal();
                         double x = (double) pos.getX() + 0.5D;
@@ -152,12 +160,11 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
                 IFluidHandler fluidHandler = null;
                 if (entity != null)
                     fluidHandler = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite()).orElse(null);
-                pipeNetwork.updateTank(fluidHandler, pipeConnection);
+                pipeNetwork.updateTank(level, fluidHandler, pipeConnection);
             }
         });
 
     }
-
 
     public UUID getIdentifier()
     {

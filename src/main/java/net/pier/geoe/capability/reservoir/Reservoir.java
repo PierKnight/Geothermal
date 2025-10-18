@@ -97,6 +97,8 @@ public class Reservoir implements IFluidTank, IFluidHandler {
 
     public ReservoirDigInfo getDigInfo(BlockPos pos)
     {
+        if(!this.chunkPos.equals(new ChunkPos(pos)))
+            throw new RuntimeException(String.format("Cannot get info in position %s for reservoir in chunk %s", pos, this.chunkPos));
         BlockPos digPos = new BlockPos(pos.getX(),0, pos.getZ());
         ReservoirDigInfo reservoirDigInfo = this.digInfo.get(digPos);
         if(reservoirDigInfo == null)

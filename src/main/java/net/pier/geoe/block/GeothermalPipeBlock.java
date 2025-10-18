@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -28,12 +29,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.blockentity.PipeBlockEntity;
 import net.pier.geoe.capability.pipe.PipeNetwork;
 import net.pier.geoe.capability.pipe.WorldNetworkCapability;
-import net.pier.geoe.network.PacketGasSound;
-import net.pier.geoe.network.PacketManager;
 import net.pier.geoe.register.GeoeTags;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +108,6 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         if (!pState.is(pNewState.getBlock())) {
             LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
             if(pLevel.getBlockEntity(pPos) instanceof PipeBlockEntity pipe) {
-                PacketManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> pLevel.getChunkAt(pPos)), new PacketGasSound(pPos));
                 super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
                 lazeCap.ifPresent(capability -> capability.onPipeBroken(pLevel, pPos, pipe));
             }
@@ -206,5 +205,23 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         boolean found = PROPERTY_BY_DIRECTION.values().stream().anyMatch(property -> pState.getValue(property) == EnumPipeConnection.INPUT || pState.getValue(property) == EnumPipeConnection.OUTPUT);
         BlockEntityTicker<PipeBlockEntity> ticker = pLevel.isClientSide ? PipeNetwork::clientTick : PipeNetwork::serverTick;
         return found ? (BlockEntityTicker<T>) ticker : null;
+    }
+
+    public static boolean IsBlockingLeak(Level level, BlockPos pos, Direction direction)
+    {
+        BlockPos relativeDirection = pos.relative(direction);
+
+        if(level.getBlockState(relativeDirection).isFaceSturdy(level, relativeDirection, direction.getOpposite(), SupportType.RIGID))
+        {
+            return true;
+        }
+
+        BlockEntity entity = level.getBlockEntity(relativeDirection);
+        IFluidHandler fluidHandler = null;
+        if (entity != null)
+            fluidHandler = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite()).orElse(null);
+
+        return fluidHandler != null;
+
     }
 }
