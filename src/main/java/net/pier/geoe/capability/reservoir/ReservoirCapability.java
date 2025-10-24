@@ -18,14 +18,7 @@ import java.util.Map;
 
 public class ReservoirCapability implements INBTSerializable<Tag>
 {
-    public static final Capability<ReservoirCapability> CAPABILITY = CapabilityManager.get(new CapabilityToken<>()
-    {
-        @Override
-        public String toString()
-        {
-            return super.toString();
-        }
-    });
+    public static final Capability<ReservoirCapability> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
     private final Level level;
 

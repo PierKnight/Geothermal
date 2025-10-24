@@ -17,8 +17,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -32,8 +30,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.pier.geoe.blockentity.PipeBlockEntity;
-import net.pier.geoe.capability.pipe.PipeNetwork;
 import net.pier.geoe.capability.pipe.WorldNetworkCapability;
+import net.pier.geoe.register.GeoeBlocks;
 import net.pier.geoe.register.GeoeTags;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,13 +76,22 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     @SuppressWarnings("deprecation")
     public void onPlace(@Nonnull BlockState pState, @Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pOldState, boolean pIsMoving)
     {
-        if(pLevel.isClientSide || pIsMoving)
-            return;
         if(pOldState.is(this))
             return;
 
+        if(pLevel.isClientSide || pIsMoving)
+            return;
+
+
         LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-        lazeCap.ifPresent(capability -> capability.onPipePlaced(pLevel,pPos));
+        lazeCap.ifPresent(capability -> capability.place(pPos));
+
+        for(Direction direction : Direction.values())
+        {
+            BlockState neighborState = pLevel.getBlockState(pPos.relative(direction));
+            pState = updateConnection(pState, direction, neighborState.is(this) ? EnumPipeConnection.PIPE : EnumPipeConnection.NONE);
+        }
+        pLevel.setBlock(pPos, pState, 2);
     }
 
     @Override
@@ -92,13 +99,28 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     @Nonnull
     public BlockState updateShape(@Nonnull BlockState pState,@Nonnull Direction pDirection,@Nonnull BlockState pNeighborState,@Nonnull LevelAccessor pLevel,@Nonnull BlockPos pCurrentPos,@Nonnull BlockPos pNeighborPos)
     {
-        if(pLevel instanceof ServerLevel level)
-        {
-            LazyOptional<WorldNetworkCapability> lazeCap = level.getCapability(WorldNetworkCapability.CAPABILITY);
-            lazeCap.ifPresent(capability -> capability.pipeChanged(level,pCurrentPos, pState, pDirection,pNeighborState));
+
+
+
+        EnumPipeConnection newConnection = EnumPipeConnection.NONE;
+        BlockState otherBlock = pLevel.getBlockState(pNeighborPos);
+        if(otherBlock.is(this)) {
+            newConnection = getConnection(pNeighborState, pDirection.getOpposite());
         }
-        return super.updateShape(pState, pDirection, pNeighborState, pLevel, pCurrentPos, pNeighborPos);
+
+        BlockState s = GeothermalPipeBlock.updateConnection(pState, pDirection, newConnection);
+        if(!hasTankConnection(s) && pLevel instanceof Level level)
+            level.removeBlockEntity(pCurrentPos);
+        if (pLevel instanceof ServerLevel level) {
+            WorldNetworkCapability capability = WorldNetworkCapability.getWorldNetwork(level);
+            if(capability != null) {
+                capability.change(new BlockPos(pCurrentPos), new BlockPos(pNeighborPos), pState, s, pDirection);
+            }
+        }
+        return s;
+
     }
+
 
     @Override
     @SuppressWarnings("deprecation")
@@ -107,22 +129,37 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
 
         if (!pState.is(pNewState.getBlock())) {
             LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-            if(pLevel.getBlockEntity(pPos) instanceof PipeBlockEntity pipe) {
-                super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
-                lazeCap.ifPresent(capability -> capability.onPipeBroken(pLevel, pPos, pipe));
-            }
-
+            super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+            lazeCap.ifPresent(capability -> capability.rebuildNetworks(pPos, null));
         }
 
 
     }
 
+
     private void useOnFacing(Level pLevel, BlockState pState, BlockPos pPos, Direction direction)
     {
+
+        BlockState a = pLevel.getBlockState(pPos);
+        EnumPipeConnection currentConnection = getConnection(a, direction);
+        EnumPipeConnection newConnection = currentConnection.rotateFluidConnection();
+
+        if(pLevel.getBlockState(pPos.relative(direction)).is(this))
+            newConnection = currentConnection == EnumPipeConnection.NONE ? EnumPipeConnection.PIPE : EnumPipeConnection.NONE;
+
+        a = updateConnection(a, direction, newConnection);
+
+
         LazyOptional<WorldNetworkCapability> lazeCap = pLevel.getCapability(WorldNetworkCapability.CAPABILITY);
-        EnumProperty<EnumPipeConnection> sideProperty = PROPERTY_BY_DIRECTION.get(direction);
-        if(!pLevel.isClientSide)
-            lazeCap.ifPresent(capability -> capability.updateConnection(pLevel, pPos,direction,!pState.getValue(sideProperty).isConnected()));
+        BlockState finalA = a;
+
+        if(!hasTankConnection(finalA))
+            pLevel.removeBlockEntity(pPos);
+
+        pLevel.setBlock(pPos, a, 3);
+
+        if(!pLevel.isClientSide && getConnection(pState, direction) == EnumPipeConnection.PIPE && newConnection == EnumPipeConnection.NONE)
+            lazeCap.ifPresent(capability -> capability.rebuildNetworks(pPos,direction));
     }
 
     @Override
@@ -196,15 +233,21 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-
-        return new PipeBlockEntity(pPos,pState);
+        return hasTankConnection(pState) ? new PipeBlockEntity(pPos,pState) : null;
     }
 
+    /*
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
         boolean found = PROPERTY_BY_DIRECTION.values().stream().anyMatch(property -> pState.getValue(property) == EnumPipeConnection.INPUT || pState.getValue(property) == EnumPipeConnection.OUTPUT);
         BlockEntityTicker<PipeBlockEntity> ticker = pLevel.isClientSide ? PipeNetwork::clientTick : PipeNetwork::serverTick;
         return found ? (BlockEntityTicker<T>) ticker : null;
+    }
+
+     */
+    public static boolean hasTankConnection(BlockState state)
+    {
+        return PROPERTY_BY_DIRECTION.values().stream().anyMatch(property -> state.getValue(property).isTankConnection());
     }
 
     public static boolean IsBlockingLeak(Level level, BlockPos pos, Direction direction)
@@ -224,4 +267,34 @@ public class GeothermalPipeBlock extends Block implements EntityBlock
         return fluidHandler != null;
 
     }
+
+    public static BlockState updateConnection(BlockState state, Direction direction, EnumPipeConnection connection)
+    {
+        EnumProperty<EnumPipeConnection> sideProperty = PROPERTY_BY_DIRECTION.get(direction);
+        return state.setValue(sideProperty, connection);
+    }
+
+    public static EnumPipeConnection getConnection(BlockState state, Direction direction)
+    {
+        EnumProperty<EnumPipeConnection> sideProperty = PROPERTY_BY_DIRECTION.get(direction);
+        return state.getValue(sideProperty);
+    }
+
+    public static boolean areConnected(Level level, BlockPos pos, Direction direction)
+    {
+        BlockState state = level.getBlockState(pos);
+        BlockState nearState = level.getBlockState(pos.relative(direction));
+        return areConnected(state, nearState, direction);
+    }
+    public static boolean areConnected(BlockState state, BlockState nearState, Direction direction)
+    {
+        if(!state.is(GeoeBlocks.PIPE.get()))
+            return false;
+        if(!nearState.is(GeoeBlocks.PIPE.get()))
+            return false;
+
+        return getConnection(state, direction) == EnumPipeConnection.PIPE && getConnection(nearState, direction.getOpposite()) == EnumPipeConnection.PIPE;
+    }
+
+
 }

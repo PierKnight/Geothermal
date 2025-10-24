@@ -33,36 +33,45 @@ public class CapabilityInitializer {
 
     @SubscribeEvent
     public static void capabilityAttachLevel(final AttachCapabilitiesEvent<Level> event) {
-        attachCapability("pipe_network", event, WorldNetworkCapability::new, WorldNetworkCapability.CAPABILITY);
+        attachCapability("pipe_network", event, () -> new WorldNetworkCapability(event.getObject()), WorldNetworkCapability.CAPABILITY);
         attachCapability("geo_reservoir", event, () -> new ReservoirCapability(event.getObject()), ReservoirCapability.CAPABILITY);
     }
 
     @SubscribeEvent
     public static void capabilityAttachChunk(final AttachCapabilitiesEvent<LevelChunk> event) {
-
+        attachCapability("geoe_chunk", event, () -> new GeoeChunk(event.getObject()), GeoeChunk.CAPABILITY);
     }
 
     @SubscribeEvent
     public static void chunkLoad(final ChunkEvent.Load event) {
-        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
+        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk) {
             levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.appendTickingReservoir(levelChunk.getPos()));
+            levelChunk.getCapability(GeoeChunk.CAPABILITY).ifPresent(GeoeChunk::onLoad);
+        }
     }
 
     @SubscribeEvent
     public static void chunkUnload(final ChunkEvent.Unload event) {
-        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk)
+        if (event.getWorld() instanceof ServerLevel && event.getChunk() instanceof LevelChunk levelChunk) {
             levelChunk.getLevel().getCapability(ReservoirCapability.CAPABILITY).ifPresent(cap -> cap.tickingReservoirs.remove(levelChunk.getPos()));
+            levelChunk.getCapability(GeoeChunk.CAPABILITY).ifPresent(GeoeChunk::onUnload);
+        }
     }
 
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.register(WorldNetworkCapability.class);
         event.register(ReservoirCapability.class);
+        event.register(GeoeChunk.class);
     }
 
     @SubscribeEvent
     public static void updateWorld(final TickEvent.WorldTickEvent event) {
-        if (event.phase == TickEvent.Phase.START)
+
+        if(event.type != TickEvent.Type.WORLD)
+            return;
+
+        if (event.phase == TickEvent.Phase.END || event.side.isClient())
             return;
 
         LazyOptional<WorldNetworkCapability> lazeCap = event.world.getCapability(WorldNetworkCapability.CAPABILITY);

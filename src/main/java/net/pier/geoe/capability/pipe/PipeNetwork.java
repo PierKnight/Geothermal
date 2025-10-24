@@ -2,18 +2,16 @@ package net.pier.geoe.capability.pipe;
 
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.pier.geoe.block.EnumPipeConnection;
@@ -23,7 +21,6 @@ import net.pier.geoe.client.particle.FluidParticleOption;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,57 +29,24 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
 
     public static final int PIPE_CAPACITY = 1000;
     private UUID identifier = UUID.randomUUID();
-    int updatingTimes = 0;
-
-    final HashSet<BlockPos> networkPipesList = new HashSet<>()
-    {
-        private void update()
-        {
-            internalTank.setCapacity(this.size() * PIPE_CAPACITY);
-        }
-
-        @Override
-        public boolean add(BlockPos blockPos)
-        {
-            boolean add = super.add(blockPos);
-            update();
-            return add;
-        }
-
-        @Override
-        public boolean remove(Object o)
-        {
-            boolean remove = super.remove(o);
-            update();
-            return remove;
-        }
-    };
-
-    public int outputs;
+    private int size;
 
     final FluidTank internalTank = new FluidTank(0);
 
-    public int getPipesSize()
+    private Set<PipeOutput> loadedOutputs = new HashSet<>();
+
+    private final WorldNetworkCapability cap;
+
+
+    public PipeNetwork(WorldNetworkCapability cap)
     {
-        return this.networkPipesList.size();
+        this.setSize(1);
+        this.cap = cap;
     }
 
-    public Set<BlockPos> getPipes() {
-        return ImmutableSet.copyOf(this.networkPipesList);
-    }
-
-
-    private long test = 0;
-    private int amount = 0;
 
     private void updateTank(Level level, @Nullable IFluidHandler tank, EnumPipeConnection connection)
     {
-        if(level.getGameTime() != test)
-        {
-            test = level.getGameTime();
-            amount = this.internalTank.getFluidAmount();
-        }
-
         if(tank == null)
         {
             if(connection == EnumPipeConnection.OUTPUT)
@@ -96,9 +60,10 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
             int filledAmount = this.internalTank.fill(drained, IFluidHandler.FluidAction.EXECUTE);
             tank.drain(filledAmount, IFluidHandler.FluidAction.EXECUTE);
         }
-        else if(this.outputs > 0)
+        else if(loadedOutputs.size() > 0)
         {
-            FluidStack drained = this.internalTank.drain(amount / outputs, IFluidHandler.FluidAction.SIMULATE);
+            int amount = 0;
+            FluidStack drained = this.internalTank.drain(amount / loadedOutputs.size(), IFluidHandler.FluidAction.SIMULATE);
             int filledAmount = tank.fill(drained, IFluidHandler.FluidAction.EXECUTE);
             this.internalTank.drain(filledAmount, IFluidHandler.FluidAction.EXECUTE);
         }
@@ -141,8 +106,37 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
 
     }
 
+    public void addOutput(PipeOutput pipeOutput)
+    {
+        if(this.loadedOutputs.isEmpty())
+            this.cap.activeNetworks.put(this.identifier, this);
+        this.loadedOutputs.add(pipeOutput);
+    }
+
+    public void removeOutput(PipeOutput pipeOutput)
+    {
+        this.loadedOutputs.remove(pipeOutput);
+        if(this.loadedOutputs.isEmpty())
+            this.cap.activeNetworks.remove(this.identifier);
+    }
+
+    public Set<PipeOutput> getLoadedOutputs() {
+        return ImmutableSet.copyOf(this.loadedOutputs);
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+        this.internalTank.setCapacity(this.size * PIPE_CAPACITY);
+    }
+
+    public int getSize() {
+        return size;
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, PipeBlockEntity pipe)
     {
+        return;
+        /*
         PipeNetwork pipeNetwork = WorldNetworkCapability.getNetwork(level, pos);
         if(pipeNetwork == null)
             return;
@@ -164,6 +158,39 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
             }
         });
 
+         */
+
+    }
+
+    public void tick(Level level)
+    {
+        if(level.getGameTime() % 20 == 0)
+        {
+            System.out.println("UPDATING NETWORK " + this.identifier + " Total outputs: " + this.loadedOutputs.size());
+        }
+    }
+
+
+    public boolean merge(PipeNetwork other)
+    {
+        boolean isFluidCompatible = this.internalTank.isEmpty() || other.internalTank.isEmpty() || this.internalTank.getFluid().isFluidEqual(other.internalTank.getFluid());
+        if(!isFluidCompatible)
+            return false;
+
+        this.setSize(this.getSize() + other.getSize());
+        this.internalTank.fill(other.getInternalTank().getFluid(), IFluidHandler.FluidAction.EXECUTE);
+        this.loadedOutputs.addAll(other.loadedOutputs);
+        if(!this.loadedOutputs.isEmpty())
+            this.cap.activeNetworks.put(this.identifier, this);
+        return true;
+    }
+
+    public void split(PipeNetwork old)
+    {
+        int fluidAmount = this.getSize() * old.internalTank.getFluidAmount() / old.getSize();
+
+        FluidStack fluidStack = old.internalTank.drain(fluidAmount, IFluidHandler.FluidAction.EXECUTE);
+        this.internalTank.fill(fluidStack, IFluidHandler.FluidAction.EXECUTE);
     }
 
     public UUID getIdentifier()
@@ -182,11 +209,8 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
         CompoundTag compoundTag = new CompoundTag();
         compoundTag.putUUID("Identifier", this.identifier);
 
-        ListTag listTag = new ListTag();
-        this.networkPipesList.forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
-        compoundTag.put("networkPipes", listTag);
+        compoundTag.putInt("size", this.size);
 
-        compoundTag.putInt("outputs", this.outputs);
         compoundTag.put("internalTank", this.internalTank.writeToNBT(new CompoundTag()));
 
         return compoundTag;
@@ -196,28 +220,30 @@ public class PipeNetwork implements INBTSerializable<CompoundTag>
     public void deserializeNBT(CompoundTag nbt)
     {
         this.identifier = nbt.getUUID("Identifier");
-
-        ListTag listTag = nbt.getList("networkPipes", 10);
-        listTag.iterator().forEachRemaining(tag -> this.networkPipesList.add(NbtUtils.readBlockPos((CompoundTag) tag)));
-
-        this.outputs = nbt.getInt("outputs");
+        this.size = nbt.getInt("size");
         this.internalTank.readFromNBT(nbt.getCompound("internalTank"));
     }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if(obj == this)
-            return true;
-        if(obj instanceof PipeNetwork network)
-            return network.identifier.equals(this.identifier);
-        return false;
-    }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(identifier);
+    public record PipeOutput(BlockPos pos, Direction direction){
+        public static PipeOutput from(BlockPos origin, Direction direction)
+        {
+            return new PipeOutput(origin.relative(direction), direction);
+        }
+
+        public static PipeOutput deserializeNBT(CompoundTag nbt) {
+            BlockPos n_pos = NbtUtils.readBlockPos(nbt.getCompound("pos"));
+            Direction d = Direction.values()[nbt.getInt("direction")];
+            return new PipeOutput(n_pos, d);
+        }
+
+        public CompoundTag serializeNBT() {
+            CompoundTag o = new CompoundTag();
+            o.put("pos", NbtUtils.writeBlockPos(this.pos()));
+            o.putInt("direction", this.direction().ordinal());
+            return o;
+        }
+
     }
 
 }
